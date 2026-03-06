@@ -1,1 +1,9 @@
-<Solution />
+<Solution>
+  <Folder Name="/Web/">
+    <Project Path="Web/NC.Web/nc.web.client/NC.Web.Client.esproj">
+      <Build />
+      <Deploy />
+    </Project>
+    <Project Path="Web/NC.Web/NC.Web.Server/NC.Web.Server.csproj" />
+  </Folder>
+</Solution>
