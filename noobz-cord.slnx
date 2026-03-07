@@ -1,4 +1,5 @@
 <Solution>
+  <Folder Name="/App/" />
   <Folder Name="/Web/">
     <Project Path="Web/NC.Web/nc.web.client/NC.Web.Client.esproj">
       <Build />
