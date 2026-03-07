@@ -57,9 +57,16 @@ export default defineConfig({
     }),
     react(),
   ],
+  css: {
+    preprocessorOptions: {
+      scss: {
+        additionalData: `@use "${path.join(process.cwd(), "src/theme/mantine").replace(/\\/g, "/")}" as *;`,
+      },
+    },
+  },
   resolve: {
     alias: {
-      "@": fileURLToPath(new URL("./src", import.meta.url)),
+      "@noobz-cord": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
   server: {

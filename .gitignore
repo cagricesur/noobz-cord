@@ -413,3 +413,5 @@ FodyWeavers.xsd
 .history/
 
 # End of https://mrkandreev.name/snippets/gitignore-generator/#react,VisualStudio,VisualStudioCode
+.tanstack/
+dist/

@@ -1,13 +1,17 @@
+import { AuthForm, HomePage } from "@noobz-cord/components";
+import { useAuthStore } from "@noobz-cord/stores";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
-  component: Index,
+  component: IndexComponent,
 });
 
-function Index() {
-  return (
-    <div className="p-2">
-      <h3>Welcome Home!</h3>
-    </div>
-  );
+function IndexComponent() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  if (isAuthenticated) {
+    return <HomePage />;
+  }
+
+  return <AuthForm />;
 }
