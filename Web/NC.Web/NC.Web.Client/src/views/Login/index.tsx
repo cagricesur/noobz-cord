@@ -1,5 +1,4 @@
 import {
-  ActionIcon,
   Button,
   Divider,
   Flex,
@@ -15,8 +14,6 @@ import FloatingLines from "./FloatingLines";
 import GradientText from "./GradientText";
 
 import logo from "@noobz-cord/assets/logo.png";
-import { useThemeStore } from "@noobz-cord/stores";
-import { IconMoon, IconSun } from "@tabler/icons-react";
 import classes from "./index.module.scss";
 
 interface IAuthFormProps {
@@ -109,9 +106,6 @@ const AuthForm: React.FunctionComponent<IAuthFormProps> = (props) => {
 };
 
 const LoginView: React.FunctionComponent = () => {
-  const theme = useThemeStore((state) => state.theme);
-  const setTheme = useThemeStore((state) => state.setTheme);
-
   return (
     <>
       <FloatingLines
@@ -152,19 +146,6 @@ const LoginView: React.FunctionComponent = () => {
                 <AuthForm registration />
               </Tabs.Panel>
             </Tabs>
-
-            <Divider my={16} />
-
-            <Group>
-              <ActionIcon
-                variant="transparent"
-                onClick={() => {
-                  setTheme(theme === "dark" ? "light" : "dark");
-                }}
-              >
-                {theme === "dark" ? <IconSun /> : <IconMoon />}
-              </ActionIcon>
-            </Group>
           </Stack>
         </Paper>
       </Flex>
