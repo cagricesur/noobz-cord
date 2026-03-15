@@ -19,11 +19,23 @@
    "T4TemplatePath": null,
    "Tables": [
       {
+         "Name": "[dbo].[Channel]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Translation]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[User]",
          "ObjectType": 0
       },
       {
          "Name": "[dbo].[UserPassword]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[UserToken]",
          "ObjectType": 0
       }
    ],

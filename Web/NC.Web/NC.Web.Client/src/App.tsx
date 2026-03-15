@@ -2,7 +2,8 @@ import { useAuthStore } from "@noobz-cord/stores";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { CookiesProvider } from "react-cookie";
-import { routeTree } from "./routeTree.gen";
+import { routeTree } from "@noobz-cord/routeTree.gen";
+import "@noobz-cord/i18n";
 
 const router = createRouter({
   routeTree,

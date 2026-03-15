@@ -31,4 +31,7 @@ public partial class User
 
     [InverseProperty("User")]
     public virtual UserPassword? UserPassword { get; set; }
+
+    [InverseProperty("User")]
+    public virtual ICollection<UserToken> UserTokens { get; set; } = new List<UserToken>();
 }

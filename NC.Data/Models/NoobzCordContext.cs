@@ -13,12 +13,23 @@ public partial class NoobzCordContext : DbContext
     {
     }
 
+    public virtual DbSet<Channel> Channels { get; set; }
+
+    public virtual DbSet<Translation> Translations { get; set; }
+
     public virtual DbSet<User> Users { get; set; }
 
     public virtual DbSet<UserPassword> UserPasswords { get; set; }
 
+    public virtual DbSet<UserToken> UserTokens { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Translation>(entity =>
+        {
+            entity.Property(e => e.ID).ValueGeneratedNever();
+        });
+
         modelBuilder.Entity<User>(entity =>
         {
             entity.Property(e => e.ID).ValueGeneratedNever();
@@ -33,6 +44,15 @@ public partial class NoobzCordContext : DbContext
             entity.HasOne(d => d.User).WithOne(p => p.UserPassword)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_UserPassword_User");
+        });
+
+        modelBuilder.Entity<UserToken>(entity =>
+        {
+            entity.Property(e => e.ID).ValueGeneratedNever();
+
+            entity.HasOne(d => d.User).WithMany(p => p.UserTokens)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_UserToken_User");
         });
 
         OnModelCreatingPartial(modelBuilder);
