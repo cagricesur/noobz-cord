@@ -13,7 +13,13 @@ import {
 } from "@mantine/core";
 import { isEmail, matchesField, useForm } from "@mantine/form";
 import { IconMoon, IconSun } from "@tabler/icons-react";
-import { PasswordInput, TextInput } from "@noobz-cord/components";
+import {
+  ColorSchemeSwitcher,
+  LanguageSwitcher,
+  PasswordInput,
+  TextInput,
+} from "@noobz-cord/components";
+import { useTranslation } from "react-i18next";
 import FloatingLines from "./FloatingLines";
 import GradientText from "./GradientText";
 
@@ -110,6 +116,7 @@ const AuthForm: React.FunctionComponent<IAuthFormProps> = (props) => {
 };
 
 const LoginView: React.FunctionComponent = () => {
+  const { t } = useTranslation();
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
 
   return (
@@ -141,30 +148,15 @@ const LoginView: React.FunctionComponent = () => {
               my={32}
               label={
                 <Group justify="center">
-                  <Tooltip
-                    label={colorScheme === "dark" ? "Light mode" : "Dark mode"}
-                    position="bottom"
-                  >
-                    <ActionIcon
-                      variant="subtle"
-                      size="lg"
-                      onClick={() => toggleColorScheme()}
-                      aria-label="Toggle color scheme"
-                    >
-                      {colorScheme === "dark" ? (
-                        <IconSun size={20} />
-                      ) : (
-                        <IconMoon size={20} />
-                      )}
-                    </ActionIcon>
-                  </Tooltip>
+                  <LanguageSwitcher />
+                  <ColorSchemeSwitcher />
                 </Group>
               }
             />
 
             <Tabs defaultValue="login">
               <Tabs.List grow>
-                <Tabs.Tab value="login">LOGIN</Tabs.Tab>
+                <Tabs.Tab value="login">{t("VIEW.LOGIN.TABS.LOGIN")}</Tabs.Tab>
                 <Tabs.Tab value="register">REGISTER</Tabs.Tab>
               </Tabs.List>
 

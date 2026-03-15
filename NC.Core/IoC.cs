@@ -17,7 +17,9 @@ namespace NC.Core
 
         public static IServiceCollection AddNoobzCordServices(this IServiceCollection services)
         {
-            return services.AddScoped<UserService>();
+            return services
+            .AddScoped<UserService>()
+            .AddScoped<ParameterService>();
         }
     }
 }
