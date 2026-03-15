@@ -1,4 +1,5 @@
 import {
+  ActionIcon,
   Button,
   Divider,
   Flex,
@@ -7,8 +8,11 @@ import {
   Paper,
   Stack,
   Tabs,
+  Tooltip,
+  useMantineColorScheme,
 } from "@mantine/core";
 import { isEmail, matchesField, useForm } from "@mantine/form";
+import { IconMoon, IconSun } from "@tabler/icons-react";
 import { PasswordInput, TextInput } from "@noobz-cord/components";
 import FloatingLines from "./FloatingLines";
 import GradientText from "./GradientText";
@@ -106,6 +110,8 @@ const AuthForm: React.FunctionComponent<IAuthFormProps> = (props) => {
 };
 
 const LoginView: React.FunctionComponent = () => {
+  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+
   return (
     <>
       <FloatingLines
@@ -131,7 +137,30 @@ const LoginView: React.FunctionComponent = () => {
               NoobzCord
             </GradientText>
 
-            <Divider my={32} />
+            <Divider
+              my={32}
+              label={
+                <Group justify="center">
+                  <Tooltip
+                    label={colorScheme === "dark" ? "Light mode" : "Dark mode"}
+                    position="bottom"
+                  >
+                    <ActionIcon
+                      variant="subtle"
+                      size="lg"
+                      onClick={() => toggleColorScheme()}
+                      aria-label="Toggle color scheme"
+                    >
+                      {colorScheme === "dark" ? (
+                        <IconSun size={20} />
+                      ) : (
+                        <IconMoon size={20} />
+                      )}
+                    </ActionIcon>
+                  </Tooltip>
+                </Group>
+              }
+            />
 
             <Tabs defaultValue="login">
               <Tabs.List grow>

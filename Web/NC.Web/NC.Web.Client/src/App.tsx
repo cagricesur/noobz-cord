@@ -1,6 +1,7 @@
-import { useEffect } from "react";
 import { useAuthStore } from "@noobz-cord/stores";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { CookiesProvider } from "react-cookie";
 import { routeTree } from "./routeTree.gen";
 
 const router = createRouter({
@@ -25,7 +26,11 @@ const App: React.FunctionComponent = () => {
     restoreSession();
   }, [restoreSession]);
 
-  return <RouterProvider router={router} context={{ authState }} />;
+  return (
+    <CookiesProvider>
+      <RouterProvider router={router} context={{ authState }} />
+    </CookiesProvider>
+  );
 };
 
 export default App;

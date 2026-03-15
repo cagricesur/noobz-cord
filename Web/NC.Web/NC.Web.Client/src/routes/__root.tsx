@@ -15,6 +15,7 @@ import { useAuthStore } from "@noobz-cord/stores";
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 
 import { theme } from "@noobz-cord/theme";
+import { useColorSchemeCookieManager } from "@noobz-cord/utils";
 
 import {
   IconHeadphones,
@@ -38,8 +39,14 @@ import "@noobz-cord/theme/theme.scss";
 const RootLayout: React.FunctionComponent = () => {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
+  const colorSchemeCookieManager = useColorSchemeCookieManager();
+
   return (
-    <MantineProvider theme={theme}>
+    <MantineProvider
+      theme={theme}
+      colorSchemeManager={colorSchemeCookieManager}
+      defaultColorScheme="dark"
+    >
       <Suspense
         fallback={
           <LoadingOverlay
