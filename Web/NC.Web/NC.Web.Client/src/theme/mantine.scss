@@ -50,6 +50,12 @@ $mantine-breakpoint-xl: "88em";
   }
 }
 
+@mixin between($breakpoint1, $breakpoint2) {
+  @media (min-width: $breakpoint1) and (max-width: $breakpoint2) {
+    @content;
+  }
+}
+
 // Add direction mixins if you need rtl support
 @mixin rtl {
   [dir="rtl"] & {

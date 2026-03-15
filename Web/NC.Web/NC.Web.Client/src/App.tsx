@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useAuthStore } from "@noobz-cord/stores";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
@@ -18,6 +19,12 @@ declare module "@tanstack/react-router" {
 
 const App: React.FunctionComponent = () => {
   const authState = useAuthStore();
+  const restoreSession = useAuthStore((s) => s.restoreSession);
+
+  useEffect(() => {
+    restoreSession();
+  }, [restoreSession]);
+
   return <RouterProvider router={router} context={{ authState }} />;
 };
 

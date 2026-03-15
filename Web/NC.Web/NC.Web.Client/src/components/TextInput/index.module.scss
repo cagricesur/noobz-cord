@@ -1,0 +1,26 @@
+.root,
+.root-no-label {
+  position: relative;
+  .label {
+    position: absolute;
+    pointer-events: none;
+    font-size: var(--mantine-font-size-xs);
+    padding-left: var(--mantine-spacing-sm);
+    padding-top: calc(var(--mantine-spacing-sm) / 2);
+    z-index: 1;
+  }
+}
+
+.root {
+  .input {
+    height: 54px;
+    padding-top: 18px;
+  }
+}
+
+.root-no-label {
+  .input {
+    height: unset;
+    padding-top: 0;
+  }
+}
