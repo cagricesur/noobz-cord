@@ -14,6 +14,10 @@ i18n
     debug: true,
     saveMissing: true,
     saveMissingTo: "all",
+    react: {
+      useSuspense: true,
+      bindI18n: "languageChanged languageChanging",
+    },
     backend: {
       loadPath: "/api/parameter/translations/{{lng}}",
       addPath: "/api/parameter/translations/add/{{lng}}",

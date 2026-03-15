@@ -1,5 +1,4 @@
 import {
-  ActionIcon,
   Button,
   Divider,
   Flex,
@@ -8,11 +7,8 @@ import {
   Paper,
   Stack,
   Tabs,
-  Tooltip,
-  useMantineColorScheme,
 } from "@mantine/core";
 import { isEmail, matchesField, useForm } from "@mantine/form";
-import { IconMoon, IconSun } from "@tabler/icons-react";
 import {
   ColorSchemeSwitcher,
   LanguageSwitcher,
@@ -117,7 +113,6 @@ const AuthForm: React.FunctionComponent<IAuthFormProps> = (props) => {
 
 const LoginView: React.FunctionComponent = () => {
   const { t } = useTranslation();
-  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
 
   return (
     <>
