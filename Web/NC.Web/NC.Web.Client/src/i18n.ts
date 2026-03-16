@@ -8,11 +8,11 @@ i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init<HttpBackendOptions>({
-    fallbackLng: "en",
+    fallbackLng: ["en", "tr"],
     supportedLngs: ["en", "tr"],
-    load: "all",
-    debug: true,
-    saveMissing: true,
+    load: "languageOnly",
+    debug: import.meta.env.DEV,
+    saveMissing: import.meta.env.DEV,
     saveMissingTo: "all",
     react: {
       useSuspense: true,
