@@ -1,7 +1,9 @@
 import i18n from "i18next";
-import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import Backend, { type HttpBackendOptions } from "i18next-http-backend";
+import { initReactI18next } from "react-i18next";
+
+const debug = import.meta.env.DEV;
 
 i18n
   .use(Backend)
@@ -11,8 +13,8 @@ i18n
     fallbackLng: ["en", "tr"],
     supportedLngs: ["en", "tr"],
     load: "languageOnly",
-    debug: import.meta.env.DEV,
-    saveMissing: import.meta.env.DEV,
+    debug: debug,
+    saveMissing: debug,
     saveMissingTo: "all",
     react: {
       useSuspense: true,
@@ -39,6 +41,28 @@ i18n
         cache: "default",
       },
     },
+    maxRetries: 3,
+    retryTimeout: 350,
   });
+
+const maintenanceHref = (): string => {
+  const base = (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
+  return `${base}/error`.replace(/\/{2,}/g, "/") || "/error";
+};
+
+const shouldRedirectToMaintenance = (): boolean => {
+  try {
+    const path = window.location.pathname.replace(/\/$/, "") || "/";
+    const target = maintenanceHref().replace(/\/$/, "") || "/error";
+    return path !== target;
+  } catch {
+    return true;
+  }
+};
+
+i18n.on("failedLoading", () => {
+  if (typeof window === "undefined" || !shouldRedirectToMaintenance()) return;
+  window.location.replace(maintenanceHref());
+});
 
 export default i18n;
