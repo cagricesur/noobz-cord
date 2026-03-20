@@ -5,6 +5,8 @@ import { initReactI18next } from "react-i18next";
 
 const debug = import.meta.env.DEV;
 
+export const NC_COOKIE_LANGUAGE = "noobzcord-language";
+
 i18n
   .use(Backend)
   .use(LanguageDetector)
@@ -13,6 +15,14 @@ i18n
     fallbackLng: ["en", "tr"],
     supportedLngs: ["en", "tr"],
     load: "languageOnly",
+    detection: {
+      order: ["cookie", "navigator", "htmlTag"],
+      lookupCookie: NC_COOKIE_LANGUAGE,
+      caches: ["cookie"],
+      cookieMinutes: 60 * 24 * 365,
+      cookieOptions: { path: "/", sameSite: "lax" },
+      convertDetectedLanguage: (lng: string) => lng.split(/[-_]/)[0] ?? lng,
+    },
     debug: debug,
     saveMissing: debug,
     saveMissingTo: "all",

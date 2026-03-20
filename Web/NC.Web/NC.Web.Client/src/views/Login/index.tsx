@@ -194,22 +194,24 @@ const AuthForm = forwardRef<IAuthFormActions, IAuthFormProps>((props, ref) => {
           />
         )}
 
-        <Switch
-          label={t("VIEW.LOGIN.FORM.REMEMBERME")}
-          checked={form.values.remember}
-          onChange={(event) => {
-            form.setFieldValue("remember", event.currentTarget.checked);
-            if (!event.currentTarget.checked) {
-              removeCookie(COOKIE_KEY_MAIL);
-              form.setInitialValues({
-                ...form.getInitialValues(),
-                mail: "",
-                remember: false,
-              });
-              form.reset();
-            }
-          }}
-        />
+        {!props.registration && (
+          <Switch
+            label={t("VIEW.LOGIN.FORM.REMEMBERME")}
+            checked={form.values.remember}
+            onChange={(event) => {
+              form.setFieldValue("remember", event.currentTarget.checked);
+              if (!event.currentTarget.checked) {
+                removeCookie(COOKIE_KEY_MAIL);
+                form.setInitialValues({
+                  ...form.getInitialValues(),
+                  mail: "",
+                  remember: false,
+                });
+                form.reset();
+              }
+            }}
+          />
+        )}
 
         <Button type="submit" radius="md">
           {props.registration
