@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ErrorRouteImport } from './routes/error'
-import { Route as AboutRouteImport } from './routes/about'
 import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProtectedSettingsRouteImport } from './routes/_protected/settings'
@@ -19,11 +18,6 @@ import { Route as ProtectedDashboardRouteImport } from './routes/_protected/dash
 const ErrorRoute = ErrorRouteImport.update({
   id: '/error',
   path: '/error',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProtectedRoute = ProtectedRouteImport.update({
@@ -48,14 +42,12 @@ const ProtectedDashboardRoute = ProtectedDashboardRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
   '/error': typeof ErrorRoute
   '/dashboard': typeof ProtectedDashboardRoute
   '/settings': typeof ProtectedSettingsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
   '/error': typeof ErrorRoute
   '/dashboard': typeof ProtectedDashboardRoute
   '/settings': typeof ProtectedSettingsRoute
@@ -64,21 +56,19 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_protected': typeof ProtectedRouteWithChildren
-  '/about': typeof AboutRoute
   '/error': typeof ErrorRoute
   '/_protected/dashboard': typeof ProtectedDashboardRoute
   '/_protected/settings': typeof ProtectedSettingsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/error' | '/dashboard' | '/settings'
+  fullPaths: '/' | '/error' | '/dashboard' | '/settings'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/error' | '/dashboard' | '/settings'
+  to: '/' | '/error' | '/dashboard' | '/settings'
   id:
     | '__root__'
     | '/'
     | '/_protected'
-    | '/about'
     | '/error'
     | '/_protected/dashboard'
     | '/_protected/settings'
@@ -87,7 +77,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ProtectedRoute: typeof ProtectedRouteWithChildren
-  AboutRoute: typeof AboutRoute
   ErrorRoute: typeof ErrorRoute
 }
 
@@ -98,13 +87,6 @@ declare module '@tanstack/react-router' {
       path: '/error'
       fullPath: '/error'
       preLoaderRoute: typeof ErrorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_protected': {
@@ -155,7 +137,6 @@ const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ProtectedRoute: ProtectedRouteWithChildren,
-  AboutRoute: AboutRoute,
   ErrorRoute: ErrorRoute,
 }
 export const routeTree = rootRouteImport
