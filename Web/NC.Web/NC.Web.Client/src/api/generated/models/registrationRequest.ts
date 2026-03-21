@@ -5,12 +5,19 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export interface LoginRequest {
+export interface RegistrationRequest {
+  /**
+   * @minLength 5
+   * @maxLength 20
+   * @pattern ^[A-Za-z][A-Za-z0-9]*$
+   */
+  name: string;
   /**
    * @minLength 8
    * @maxLength 10
    */
   password: string;
+  passwordConfirm: string;
   /**
    * @minLength 0
    * @maxLength 50

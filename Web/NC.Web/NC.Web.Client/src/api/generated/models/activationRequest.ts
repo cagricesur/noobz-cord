@@ -5,7 +5,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export interface AuthResponse {
-  name?: string;
-  token?: string;
+export interface ActivationRequest {
+  /** @nullable */
+  token?: string | null;
 }

@@ -4,12 +4,12 @@ using NC.Core.Services;
 namespace NC.Web.Server.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/[controller]/[action]")]
 public class ParameterController(ParameterService parameterService) : ControllerBase
 {
-    [HttpGet("translations/{language}")]
-    public async Task<ActionResult<IReadOnlyDictionary<string, string>>> GetTranslations(
-        string language,
+    [HttpGet]
+    public async Task<ActionResult<List<KeyValuePair<string, string>>>> GetTranslations(
+        [FromQuery] string language,
         CancellationToken cancellationToken)
     {
         var translations = await parameterService.GetTranslations(language, cancellationToken);
@@ -18,9 +18,9 @@ public class ParameterController(ParameterService parameterService) : Controller
 
 
 
-    [HttpPost("translations/add/{language}")]
+    [HttpPost]
     public async Task<IActionResult> AddMissingTranslations(
-        string language,
+        [FromQuery] string language,
         [FromBody] Dictionary<string, string>? entries,
         CancellationToken cancellationToken)
     {

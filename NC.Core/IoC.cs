@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using NC.Core.Models;
 using NC.Core.Services;
 using NC.Data.Models;
 
@@ -15,11 +17,18 @@ namespace NC.Core
             });
         }
 
-        public static IServiceCollection AddNoobzCordServices(this IServiceCollection services)
+        public static IServiceCollection AddNoobzCordServices(this IServiceCollection services, IConfiguration configuration)
         {
+           
+
             return services
-            .AddScoped<UserService>()
-            .AddScoped<ParameterService>();
+                    .Configure<AppSettings>(configuration.GetSection(AppSettings.Section))
+                    .Configure<JwtSettings>(configuration.GetSection(JwtSettings.Section))
+                    .Configure<SmtpSettings>(configuration.GetSection(SmtpSettings.Section))
+                    .AddSingleton<CacheService>()
+                    .AddScoped<MailService>()
+                    .AddScoped<UserService>()
+                    .AddScoped<ParameterService>();
         }
     }
 }

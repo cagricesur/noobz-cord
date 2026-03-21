@@ -15,6 +15,8 @@ public partial class NoobzCordContext : DbContext
 
     public virtual DbSet<Channel> Channels { get; set; }
 
+    public virtual DbSet<Parameter> Parameters { get; set; }
+
     public virtual DbSet<Translation> Translations { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
@@ -25,6 +27,11 @@ public partial class NoobzCordContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Parameter>(entity =>
+        {
+            entity.Property(e => e.ID).ValueGeneratedNever();
+        });
+
         modelBuilder.Entity<Translation>(entity =>
         {
             entity.Property(e => e.ID).ValueGeneratedNever();

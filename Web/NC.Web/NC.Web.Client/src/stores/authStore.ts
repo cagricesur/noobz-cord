@@ -1,6 +1,6 @@
 import type { IAuthStoreState, IAuthUser } from "@noobz-cord/models";
 import { create } from "zustand";
-import { getNoobzCordAPI } from "@noobz-cord/api";
+import { getAuth } from "@noobz-cord/api";
 
 const TOKEN_KEY = "noobz_cord_token";
 const USER_KEY = "noobz_cord_user";
@@ -33,7 +33,11 @@ function setStoredAuth(token: string, user: IAuthUser): void {
   localStorage.setItem(USER_KEY, JSON.stringify(user));
 }
 
-function toAuthUser(data: { userId?: string; name?: string; contact?: string }): IAuthUser {
+function toAuthUser(data: {
+  userId?: string;
+  name?: string;
+  contact?: string;
+}): IAuthUser {
   return {
     userId: data.userId ?? "",
     name: data.name ?? "",
@@ -68,15 +72,20 @@ export const useAuthStore = create<IAuthStoreState>((set, get) => ({
     const token = get().token ?? getStoredToken();
     if (!token) return;
     set({ authLoading: true, authError: null });
-    const api = getNoobzCordAPI();
+    const api = getAuth();
     try {
-      const data = await api.me();
+      const data = await api.getApiAuthMe();
       const user = toAuthUser(data);
       setStoredAuth(token, user);
       set({ user, isAuthenticated: true, authLoading: false });
     } catch {
       clearStoredAuth();
-      set({ token: null, user: null, isAuthenticated: false, authLoading: false });
+      set({
+        token: null,
+        user: null,
+        isAuthenticated: false,
+        authLoading: false,
+      });
     }
   },
 }));

@@ -31,8 +31,8 @@ i18n
       bindI18n: "languageChanged languageChanging",
     },
     backend: {
-      loadPath: "/api/parameter/translations/{{lng}}",
-      addPath: "/api/parameter/translations/add/{{lng}}",
+      loadPath: "/api/parameter/GetTranslations?language={{lng}}",
+      addPath: "/api/parameter/AddMissingTranslations?language={{lng}}",
       parse: function (data: string | object) {
         return typeof data === "string" ? JSON.parse(data) : data;
       },

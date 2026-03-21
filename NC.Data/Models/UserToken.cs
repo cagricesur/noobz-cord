@@ -19,6 +19,9 @@ public partial class UserToken
     [Column(TypeName = "datetime")]
     public DateTime Expires { get; set; }
 
+    [Column(TypeName = "datetime")]
+    public DateTime? UsedAt { get; set; }
+
     public byte Status { get; set; }
 
     [ForeignKey("UserID")]

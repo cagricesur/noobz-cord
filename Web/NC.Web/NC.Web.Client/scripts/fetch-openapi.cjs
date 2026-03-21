@@ -3,9 +3,7 @@ const path = require("path");
 const https = require("https");
 const http = require("http");
 
-const url =
-  process.env.OPENAPI_URL ||
-  "http://localhost:5215/openapi/v1.json";
+const url = process.env.OPENAPI_URL || "https://localhost:7070/openapi/v1.json";
 
 const client = url.startsWith("https") ? https : http;
 

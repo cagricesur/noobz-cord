@@ -23,6 +23,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[Parameter]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[Translation]",
          "ObjectType": 0
       },

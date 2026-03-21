@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using NC.Core;
+using NC.Core.Models;
 using Scalar.AspNetCore;
 using System.Text;
 
@@ -8,13 +9,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddMemoryCache(options => builder.Configuration.GetSection("MemoryCache").Bind(options));
 builder.Services.AddNoobzCordDbContext(builder.Configuration.GetConnectionString("NoobzCord"));
-builder.Services.AddNoobzCordServices();
+builder.Services.AddNoobzCordServices(builder.Configuration);
 
-var jwtSecret = builder.Configuration["Jwt:Secret"] ?? throw new InvalidOperationException("Jwt:Secret must be set in configuration (e.g. appsettings.json or environment).");
-var key = Encoding.UTF8.GetBytes(jwtSecret);
-if (key.Length < 32)
-    throw new InvalidOperationException("Jwt:Secret must be at least 32 characters for HS256.");
+
+var jwtSettings = new JwtSettings();
+builder.Configuration.GetSection(JwtSettings.Section).Bind(jwtSettings);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -22,9 +23,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(key),
-            ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "NoobzCord",
-            ValidAudience = builder.Configuration["Jwt:Audience"] ?? "NoobzCord",
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret)),
+            ValidIssuer = jwtSettings.Issuer,
+            ValidAudience = jwtSettings.Audience,
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateLifetime = true,
