@@ -1,7 +1,11 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using NC.Core.Helpers;
 using NC.Core.Models;
+using NC.Core.Models.Contracts;
+using NC.Core.Models.Settings;
 using NC.Data.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -33,27 +37,47 @@ namespace NC.Core.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        public async Task<(string name, string token)> Login(string contact, string password, CancellationToken cancellationToken)
+        public async Task<ServiceResponse<LoginResponse>> Login(LoginRequest request, CancellationToken cancellationToken)
         {
-            var user = await context.Users
-                .Include(entity => entity.UserPassword)
-                .FirstOrDefaultAsync(entity => entity.Contact == contact && entity.Status == (byte)UserStatusEnum.Active, cancellationToken);
+            var response = new ServiceResponse<LoginResponse>();
+            response.SetError(StatusCodes.Status401Unauthorized, "ERROR.LOGIN.UNAUTHORIZED");
 
-            if (user != null && user.UserPassword != null && BCrypt.Net.BCrypt.Verify(password, user.UserPassword.Hash))
+            var user = await context.Users.FirstOrDefaultAsync(entity => entity.Contact == request.Contact, cancellationToken);
+
+            if (user != null)
             {
-                return (user.Name, GenerateJwt(user.ID, user.Name, user.Contact));
+                var status = (UserStatusEnum)user.Status;
+                switch (status)
+                {
+                    case UserStatusEnum.WaitingForActivation:
+                        response.SetError(StatusCodes.Status401Unauthorized, "ERROR.LOGIN.PENDINGACTIVATION");
+                        break;
+                    case UserStatusEnum.Active:
+                        var userPassword = await context.UserPasswords.FirstOrDefaultAsync(entity => entity.UserID == user.ID, cancellationToken);
+                        if (userPassword != null && HashHelper.Verify(request.Password, userPassword.Hash))
+                        {
+                            response.SetSuccess(new LoginResponse()
+                            {
+                                Name = user.Name,
+                                Token = GenerateJwt(user.ID, user.Name, user.Contact)
+                            });
+                        }
+                        break;
+                }
             }
-
-            return ("", "");
+            return response;
         }
 
 
-        public async Task<string?> Register(string name, string contact, string password, CancellationToken cancellationToken)
+        public async Task<ServiceResponse<RegistrationResponse>> Register(RegistrationRequest request, CancellationToken cancellationToken)
         {
-            var exists = await context.Users
-                .AnyAsync(u => u.Name == name || u.Contact == contact, cancellationToken);
-
-            if (!exists)
+            var response = new ServiceResponse<RegistrationResponse>();
+            var exists = await context.Users.AnyAsync(entity => entity.Name == request.Name || entity.Contact == request.Contact, cancellationToken);
+            if (exists)
+            {
+                response.SetError(StatusCodes.Status400BadRequest, "ERROR.REGISTER.EXISTINGUSER");
+            }
+            else
             {
 
                 var registration = DateTime.UtcNow;
@@ -63,13 +87,13 @@ namespace NC.Core.Services
                 var user = new User
                 {
                     ID = Guid.NewGuid(),
-                    Name = name,
-                    Contact = contact,
+                    Name = request.Name,
+                    Contact = request.Contact,
                     RegistrationDate = registration,
                     Status = (byte)UserStatusEnum.WaitingForActivation,
                     Role = 0,
                 };
-                var hash = BCrypt.Net.BCrypt.HashPassword(password, BCrypt.Net.BCrypt.GenerateSalt(12));
+                var hash = HashHelper.Hash(request.Password);
                 var userPassword = new UserPassword
                 {
                     UserID = user.ID,
@@ -104,37 +128,35 @@ namespace NC.Core.Services
 
                 await mailService.SendMail(user.Contact, "Welcome to NoobzCord", string.Empty, htmlContent, cancellationToken);
 
-                return user.Name;
+                response.SetSuccess(StatusCodes.Status201Created, new RegistrationResponse()
+                {
+                    Name = user.Name
+                });
             }
 
-            return null;
+            return response;
         }
 
-        public async Task<bool> Activate(Guid idenitifer, CancellationToken cancellationToken)
+        public async Task<ServiceResponse<ActivationResponse>> Activate(ActivationRequest request, CancellationToken cancellationToken)
         {
-            var token = await context.UserTokens.FirstOrDefaultAsync(entity => entity.ID == idenitifer, cancellationToken);
-            if (token != null)
+            var response = new ServiceResponse<ActivationResponse>();
+            response.SetError(StatusCodes.Status400BadRequest, "");
+            var token = await context.UserTokens.FirstOrDefaultAsync(entity => entity.ID == request.Token, cancellationToken);
+
+            if (token != null && token.Status == (byte)UserTokenStatus.Ready && token.Expires > DateTime.UtcNow)
             {
-                if (token.Status == (byte)UserTokenStatus.Ready && token.Expires > DateTime.UtcNow)
+                var user = await context.Users.FirstOrDefaultAsync(entity => entity.ID == token.UserID, cancellationToken);
+                if (user != null && user.Status == (byte)UserStatusEnum.WaitingForActivation)
                 {
-                    var user = await context.Users.FirstOrDefaultAsync(entity => entity.ID == token.UserID, cancellationToken);
-                    if (user != null && user.Status == (byte)UserStatusEnum.WaitingForActivation)
-                    {
-                        user.Status = (byte)UserStatusEnum.Active;
-                        token.Status = (byte)UserTokenStatus.Used;
-                        token.UsedAt = DateTime.UtcNow;
-                        await context.SaveChangesAsync(cancellationToken);
-                        return true;
-                    }
-                }
-                else
-                {
-                    token.Status = (byte)UserTokenStatus.Expired;
+                    user.Status = (byte)UserStatusEnum.Active;
+                    token.Status = (byte)UserTokenStatus.Used;
+                    token.UsedAt = DateTime.UtcNow;
                     await context.SaveChangesAsync(cancellationToken);
+                    response.SetSuccess(StatusCodes.Status200OK);
                 }
             }
 
-            return false;
+            return response;
         }
     }
 }

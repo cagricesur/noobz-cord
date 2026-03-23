@@ -7,6 +7,11 @@
 
 export interface RegistrationRequest {
   /**
+   * @minLength 0
+   * @maxLength 50
+   */
+  contact: string;
+  /**
    * @minLength 5
    * @maxLength 20
    * @pattern ^[A-Za-z][A-Za-z0-9]*$
@@ -18,9 +23,4 @@ export interface RegistrationRequest {
    */
   password: string;
   passwordConfirm: string;
-  /**
-   * @minLength 0
-   * @maxLength 50
-   */
-  contact: string;
 }

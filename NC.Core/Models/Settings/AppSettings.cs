@@ -1,4 +1,4 @@
-﻿namespace NC.Core.Models
+﻿namespace NC.Core.Models.Settings
 {
     public class AppSettings
     {

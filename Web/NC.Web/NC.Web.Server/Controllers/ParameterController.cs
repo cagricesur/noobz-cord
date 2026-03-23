@@ -3,9 +3,7 @@ using NC.Core.Services;
 
 namespace NC.Web.Server.Controllers;
 
-[ApiController]
-[Route("api/[controller]/[action]")]
-public class ParameterController(ParameterService parameterService) : ControllerBase
+public class ParameterController(ParameterService parameterService) : BaseController
 {
     [HttpGet]
     public async Task<ActionResult<List<KeyValuePair<string, string>>>> GetTranslations(

@@ -6,9 +6,11 @@
  */
 import type {
   ActivationRequest,
-  AuthResponse,
+  ActivationResponse,
   LoginRequest,
+  LoginResponse,
   RegistrationRequest,
+  RegistrationResponse,
 } from "./models";
 
 import { customInstance } from "../axios-instance";
@@ -19,9 +21,9 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 export const getAuth = () => {
   const postApiAuthLogin = (
     loginRequest: BodyType<LoginRequest>,
-    options?: SecondParameter<typeof customInstance<AuthResponse>>,
+    options?: SecondParameter<typeof customInstance<LoginResponse>>,
   ) => {
-    return customInstance<AuthResponse>(
+    return customInstance<LoginResponse>(
       {
         url: `/api/Auth/Login`,
         method: "POST",
@@ -33,9 +35,9 @@ export const getAuth = () => {
   };
   const postApiAuthRegister = (
     registrationRequest: BodyType<RegistrationRequest>,
-    options?: SecondParameter<typeof customInstance<AuthResponse>>,
+    options?: SecondParameter<typeof customInstance<RegistrationResponse>>,
   ) => {
-    return customInstance<AuthResponse>(
+    return customInstance<RegistrationResponse>(
       {
         url: `/api/Auth/Register`,
         method: "POST",
@@ -47,9 +49,9 @@ export const getAuth = () => {
   };
   const postApiAuthActivate = (
     activationRequest: BodyType<ActivationRequest>,
-    options?: SecondParameter<typeof customInstance<void>>,
+    options?: SecondParameter<typeof customInstance<ActivationResponse>>,
   ) => {
-    return customInstance<void>(
+    return customInstance<ActivationResponse>(
       {
         url: `/api/Auth/Activate`,
         method: "POST",

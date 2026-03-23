@@ -1,52 +1,35 @@
 using Microsoft.AspNetCore.Mvc;
+using NC.Core.Models.Contracts;
 using NC.Core.Services;
-using NC.Web.Server.Models;
 
 namespace NC.Web.Server.Controllers;
-
-[ApiController]
-[Route("api/[controller]/[action]")]
-public class AuthController(UserService userService) : ControllerBase
+public class AuthController(UserService userService) : BaseController
 {
 
     [HttpPost]
-    public async Task<ActionResult<AuthResponse>> Login(LoginRequest request, CancellationToken cancellationToken)
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<LoginResponse>(StatusCodes.Status200OK)]
+    public async Task<IActionResult> Login(LoginRequest request, CancellationToken cancellationToken)
     {
-        var (name, token) = await userService.Login(request.Contact, request.Password, cancellationToken);
-        if (string.IsNullOrEmpty(token))
-        {
-            return Unauthorized();
-        }
-
-        return Ok(new AuthResponse
-        {
-            Token = token,
-            Name = name
-        });
+        var response = await userService.Login(request, cancellationToken);
+        return response.ToControllerResponse();
     }
 
     [HttpPost]
-    public async Task<ActionResult<AuthResponse>> Register(RegistrationRequest request, CancellationToken cancellationToken)
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<RegistrationResponse>(StatusCodes.Status201Created)]
+    public async Task<IActionResult> Register(RegistrationRequest request, CancellationToken cancellationToken)
     {
-        var name = await userService.Register(request.Name, request.Contact, request.Password, cancellationToken);
-        if (string.IsNullOrEmpty(name))
-        {
-            return BadRequest();
-        }
-
-        return Ok(new AuthResponse
-        {
-            Name = name
-        });
+        var response= await userService.Register(request, cancellationToken);
+        return response.ToControllerResponse();
     }
 
     [HttpPost]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ActivationResponse>(StatusCodes.Status200OK)]
     public async Task<IActionResult> Activate(ActivationRequest request, CancellationToken cancellationToken)
     {
-        if (Guid.TryParse(request.Token, out Guid identifier) && await userService.Activate(identifier, cancellationToken))
-        {
-            return Ok();
-        }
-        return BadRequest();
+        var response = await userService.Activate(request, cancellationToken);
+        return response.ToControllerResponse();
     }
 }

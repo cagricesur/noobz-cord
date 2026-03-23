@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using NC.Core.Models;
+using NC.Core.Models.Settings;
 using NC.Core.Services;
 using NC.Data.Models;
 

@@ -36,22 +36,42 @@
           "required": true
         },
         "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "200": {
             "description": "OK",
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuthResponse"
+                  "$ref": "#/components/schemas/LoginResponse"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuthResponse"
+                  "$ref": "#/components/schemas/LoginResponse"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuthResponse"
+                  "$ref": "#/components/schemas/LoginResponse"
                 }
               }
             }
@@ -85,22 +105,42 @@
           "required": true
         },
         "responses": {
-          "200": {
-            "description": "OK",
+          "400": {
+            "description": "Bad Request",
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuthResponse"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuthResponse"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuthResponse"
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistrationResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistrationResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistrationResponse"
                 }
               }
             }
@@ -134,13 +174,50 @@
           "required": true
         },
         "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivationResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivationResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivationResponse"
+                }
+              }
+            }
           }
         }
       }
     },
-    "/api/Cache/remove": {
+    "/api/Cache/Remove": {
       "post": {
         "tags": [
           "Cache"
@@ -161,7 +238,7 @@
         }
       }
     },
-    "/api/Cache/clear": {
+    "/api/Cache/Clear": {
       "post": {
         "tags": [
           "Cache"
@@ -294,26 +371,19 @@
   "components": {
     "schemas": {
       "ActivationRequest": {
+        "required": [
+          "token"
+        ],
         "type": "object",
         "properties": {
           "token": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": "string",
+            "format": "uuid"
           }
         }
       },
-      "AuthResponse": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "token": {
-            "type": "string"
-          }
-        }
+      "ActivationResponse": {
+        "type": "object"
       },
       "KeyValuePairOfstringAndstring": {
         "required": [
@@ -338,32 +408,86 @@
       },
       "LoginRequest": {
         "required": [
-          "password",
-          "contact"
+          "contact",
+          "password"
         ],
         "type": "object",
         "properties": {
-          "password": {
-            "maxLength": 10,
-            "minLength": 8,
-            "type": "string"
-          },
           "contact": {
             "maxLength": 50,
             "minLength": 0,
             "type": "string"
+          },
+          "password": {
+            "maxLength": 10,
+            "minLength": 8,
+            "type": "string"
+          }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          }
+        }
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "instance": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
       "RegistrationRequest": {
         "required": [
+          "contact",
           "name",
           "password",
-          "passwordConfirm",
-          "contact"
+          "passwordConfirm"
         ],
         "type": "object",
         "properties": {
+          "contact": {
+            "maxLength": 50,
+            "minLength": 0,
+            "type": "string"
+          },
           "name": {
             "maxLength": 20,
             "minLength": 5,
@@ -377,10 +501,13 @@
           },
           "passwordConfirm": {
             "type": "string"
-          },
-          "contact": {
-            "maxLength": 50,
-            "minLength": 0,
+          }
+        }
+      },
+      "RegistrationResponse": {
+        "type": "object",
+        "properties": {
+          "name": {
             "type": "string"
           }
         }

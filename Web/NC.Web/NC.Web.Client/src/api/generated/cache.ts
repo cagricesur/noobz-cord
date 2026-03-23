@@ -16,7 +16,7 @@ export const getCache = () => {
     options?: SecondParameter<typeof customInstance<void>>,
   ) => {
     return customInstance<void>(
-      { url: `/api/Cache/remove`, method: "POST", params },
+      { url: `/api/Cache/Remove`, method: "POST", params },
       options,
     );
   };
@@ -24,7 +24,7 @@ export const getCache = () => {
     options?: SecondParameter<typeof customInstance<void>>,
   ) => {
     return customInstance<void>(
-      { url: `/api/Cache/clear`, method: "POST" },
+      { url: `/api/Cache/Clear`, method: "POST" },
       options,
     );
   };

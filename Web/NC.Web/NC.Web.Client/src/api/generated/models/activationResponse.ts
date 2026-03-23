@@ -5,6 +5,6 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export interface ActivationRequest {
-  token: string;
+export interface ActivationResponse {
+  [key: string]: unknown;
 }

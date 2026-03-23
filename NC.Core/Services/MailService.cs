@@ -2,7 +2,7 @@
 using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
-using NC.Core.Models;
+using NC.Core.Models.Settings;
 
 namespace NC.Core.Services
 {

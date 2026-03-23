@@ -7,13 +7,13 @@
 
 export interface LoginRequest {
   /**
-   * @minLength 8
-   * @maxLength 10
-   */
-  password: string;
-  /**
    * @minLength 0
    * @maxLength 50
    */
   contact: string;
+  /**
+   * @minLength 8
+   * @maxLength 10
+   */
+  password: string;
 }

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using NC.Core;
-using NC.Core.Models;
+using NC.Core.Models.Settings;
 using Scalar.AspNetCore;
 using System.Text;
 

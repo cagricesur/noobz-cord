@@ -6,13 +6,16 @@
  */
 
 export * from "./activationRequest";
-export * from "./authResponse";
+export * from "./activationResponse";
 export * from "./getApiParameterGetTranslationsParams";
 export * from "./keyValuePairOfstringAndstring";
 export * from "./loginRequest";
+export * from "./loginResponse";
 export * from "./postApiCacheRemoveParams";
 export * from "./postApiParameterAddMissingTranslationsBodyOne";
 export * from "./postApiParameterAddMissingTranslationsBodyThree";
 export * from "./postApiParameterAddMissingTranslationsBodyTwo";
 export * from "./postApiParameterAddMissingTranslationsParams";
+export * from "./problemDetails";
 export * from "./registrationRequest";
+export * from "./registrationResponse";
