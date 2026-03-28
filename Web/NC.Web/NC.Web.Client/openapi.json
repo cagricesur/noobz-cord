@@ -419,7 +419,7 @@
             "type": "string"
           },
           "password": {
-            "maxLength": 10,
+            "maxLength": 16,
             "minLength": 8,
             "type": "string"
           }
@@ -433,6 +433,9 @@
           },
           "token": {
             "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRoleEnum"
           }
         }
       },
@@ -495,7 +498,7 @@
             "type": "string"
           },
           "password": {
-            "maxLength": 10,
+            "maxLength": 16,
             "minLength": 8,
             "type": "string"
           },
@@ -511,6 +514,13 @@
             "type": "string"
           }
         }
+      },
+      "UserRoleEnum": {
+        "enum": [
+          "Member",
+          "Moderator",
+          "Admin"
+        ]
       }
     }
   },

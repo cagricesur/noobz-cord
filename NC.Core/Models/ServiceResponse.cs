@@ -37,14 +37,14 @@ namespace NC.Core.Models
             object? content;
             if (StatusCode >= 200 && StatusCode <= 299)
             {
+                content = Content;
+            }
+            else
+            {
                 content = new ProblemDetails()
                 {
                     Title = ErrorCode
                 };
-            }
-            else
-            {
-                content = Content;
             }
 
             return new ObjectResult(content)

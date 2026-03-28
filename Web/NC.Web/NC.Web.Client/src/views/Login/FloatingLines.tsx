@@ -1,11 +1,11 @@
 import { useEffect, useRef } from "react";
 import {
-  Timer,
   Mesh,
   OrthographicCamera,
   PlaneGeometry,
   Scene,
   ShaderMaterial,
+  Timer,
   Vector2,
   Vector3,
   WebGLRenderer,
@@ -408,15 +408,17 @@ export default function FloatingLines({
     const clock = new Timer();
 
     const setSize = () => {
-      const el = containerRef.current!;
-      const width = el.clientWidth || 1;
-      const height = el.clientHeight || 1;
+      const el = containerRef.current;
+      if (el) {
+        const width = el.clientWidth || 1;
+        const height = el.clientHeight || 1;
 
-      renderer.setSize(width, height, false);
+        renderer.setSize(width, height, false);
 
-      const canvasWidth = renderer.domElement.width;
-      const canvasHeight = renderer.domElement.height;
-      uniforms.iResolution.value.set(canvasWidth, canvasHeight, 1);
+        const canvasWidth = renderer.domElement.width;
+        const canvasHeight = renderer.domElement.height;
+        uniforms.iResolution.value.set(canvasWidth, canvasHeight, 1);
+      }
     };
 
     setSize();

@@ -6,5 +6,6 @@ namespace NC.Core.Models.Contracts
     {
         public string Name { get; set; } = null!;
         public string Token { get; set; } = null!;
+        public UserRoleEnum Role { get; set; }
     }
 }

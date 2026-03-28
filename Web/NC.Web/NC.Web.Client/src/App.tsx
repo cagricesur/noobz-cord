@@ -1,11 +1,10 @@
 import { LoadingOverlay, MantineProvider } from "@mantine/core";
-import "@noobz-cord/i18n";
+import { Notifications } from "@mantine/notifications";
 import { routeTree } from "@noobz-cord/routeTree.gen";
 import { useAuthStore } from "@noobz-cord/stores";
 import { theme } from "@noobz-cord/theme";
 import { useColorSchemeCookieManager } from "@noobz-cord/utils";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
-import { useEffect } from "react";
 
 import "@mantine/carousel/styles.css";
 import "@mantine/charts/styles.css";
@@ -17,6 +16,7 @@ import "@mantine/notifications/styles.css";
 import "@mantine/nprogress/styles.css";
 import "@mantine/spotlight/styles.css";
 import "@mantine/tiptap/styles.css";
+import "@noobz-cord/i18n";
 import "@noobz-cord/theme/theme.scss";
 
 declare module "@tanstack/react-router" {
@@ -45,12 +45,7 @@ const router = createRouter({
 
 const App: React.FunctionComponent = () => {
   const authState = useAuthStore();
-  const restoreSession = useAuthStore((s) => s.restoreSession);
   const colorSchemeCookieManager = useColorSchemeCookieManager();
-
-  useEffect(() => {
-    restoreSession();
-  }, [restoreSession]);
 
   return (
     <MantineProvider
@@ -58,6 +53,7 @@ const App: React.FunctionComponent = () => {
       colorSchemeManager={colorSchemeCookieManager}
       defaultColorScheme="dark"
     >
+      <Notifications />
       <RouterProvider router={router} context={{ authState }} />
     </MantineProvider>
   );

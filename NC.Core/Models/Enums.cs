@@ -1,15 +1,22 @@
 ﻿namespace NC.Core.Models
 {
-    internal enum UserTokenStatus
+    public enum UserTokenStatus
     {
         Ready,
         Used,
         Expired
     }
-    internal enum UserStatusEnum
+    public enum UserStatusEnum
     {
         Passive,
         Active,
         WaitingForActivation
+    }
+
+    public enum UserRoleEnum
+    {
+        Member,
+        Moderator,
+        Admin
     }
 }

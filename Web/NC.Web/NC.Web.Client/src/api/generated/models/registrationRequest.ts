@@ -19,7 +19,7 @@ export interface RegistrationRequest {
   name: string;
   /**
    * @minLength 8
-   * @maxLength 10
+   * @maxLength 16
    */
   password: string;
   passwordConfirm: string;

@@ -23,8 +23,11 @@ import { useTranslation } from "react-i18next";
 import FloatingLines from "./FloatingLines";
 import GradientText from "./GradientText";
 
+import { getAuth } from "@noobz-cord/api";
 import logo from "@noobz-cord/assets/logo.png";
+import { useAuthStore } from "@noobz-cord/stores";
 import classes from "./index.module.scss";
+import { getRouteApi } from "@tanstack/react-router";
 
 interface IAuthFormProps {
   registration?: boolean;
@@ -38,6 +41,9 @@ const COOKIE_KEY_REMEMBER = "noobzcord-auth-remember";
 
 const AuthForm = forwardRef<IAuthFormActions, IAuthFormProps>((props, ref) => {
   const { t } = useTranslation();
+  const authStore = useAuthStore();
+  const router = getRouteApi("/");
+  const nav = router.useNavigate();
   const [cookies, setCookie, removeCookie] = useCookies([
     COOKIE_KEY_MAIL,
     COOKIE_KEY_REMEMBER,
@@ -98,7 +104,7 @@ const AuthForm = forwardRef<IAuthFormActions, IAuthFormProps>((props, ref) => {
             return t("VIEW.LOGIN.FORM.VALIDATON.PASSWORD.ATLEAST1SPECIALCHAR");
           }
         }
-        if (value.length < 8 || value.length > 10) {
+        if (value.length < 8 || value.length > 16) {
           return t("VIEW.LOGIN.FORM.VALIDATON.PASSWORD.LENGTH");
         }
 
@@ -128,14 +134,25 @@ const AuthForm = forwardRef<IAuthFormActions, IAuthFormProps>((props, ref) => {
     password2: string;
     remember: boolean;
   }) => {
-    console.log(values);
-
-    setCookie(COOKIE_KEY_REMEMBER, values.remember);
-    if (values.remember) {
-      setCookie(COOKIE_KEY_MAIL, values.mail);
-    } else {
-      removeCookie(COOKIE_KEY_MAIL);
-    }
+    const api = getAuth();
+    api
+      .postApiAuthLogin({
+        contact: values.mail,
+        password: values.password1,
+      })
+      .then((response) => {
+        const authenticated = response && response.name && response.token;
+        if (authenticated) {
+          authStore.login(response);
+          setCookie(COOKIE_KEY_REMEMBER, values.remember);
+          if (values.remember) {
+            setCookie(COOKIE_KEY_MAIL, values.mail);
+          } else {
+            removeCookie(COOKIE_KEY_MAIL);
+          }
+          nav({ to: "/", replace: true });
+        }
+      });
   };
 
   const error = (errors: FormErrors) => {

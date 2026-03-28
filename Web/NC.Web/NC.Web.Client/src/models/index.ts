@@ -1,20 +1,10 @@
-export interface IAuthUser {
-  userId: string;
-  name: string;
-  contact: string;
-}
+import type { LoginResponse } from "@noobz-cord/api";
 
 export interface IAuthStoreState {
-  token: string | null;
-  user: IAuthUser | null;
-  isAuthenticated: boolean;
-  authLoading: boolean;
-  authError: string | null;
-  setAuth: (token: string, user: IAuthUser) => void;
+  user?: LoginResponse;
+  authenticated: boolean;
+  login: (user: LoginResponse) => void;
   logout: () => void;
-  setAuthLoading: (loading: boolean) => void;
-  setAuthError: (error: string | null) => void;
-  restoreSession: () => Promise<void>;
 }
 
 export interface IAppState {

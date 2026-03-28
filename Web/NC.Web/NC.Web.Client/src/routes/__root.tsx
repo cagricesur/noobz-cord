@@ -10,7 +10,11 @@ import {
 } from "@mantine/core";
 import type { IAppState } from "@noobz-cord/models";
 import { useAuthStore } from "@noobz-cord/stores";
-import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
+import {
+  createRootRouteWithContext,
+  Outlet,
+  useNavigate,
+} from "@tanstack/react-router";
 
 import {
   IconHeadphones,
@@ -19,7 +23,9 @@ import {
 } from "@tabler/icons-react";
 
 const RootLayout: React.FunctionComponent = () => {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const role = useAuthStore((state) => state.user?.role);
+  const authenticated = useAuthStore((state) => state.authenticated);
+  const nav = useNavigate();
 
   return (
     <AppShell
@@ -29,8 +35,8 @@ const RootLayout: React.FunctionComponent = () => {
         breakpoint: "md",
         collapsed: { desktop: false, mobile: true },
       }}
-      padding={isAuthenticated ? "md" : 0}
-      disabled={!isAuthenticated}
+      padding={authenticated ? "md" : 0}
+      disabled={!authenticated}
       transitionDuration={0}
     >
       <AppShell.Header></AppShell.Header>
@@ -53,9 +59,18 @@ const RootLayout: React.FunctionComponent = () => {
                 <ActionIcon variant="transparent" color="white">
                   <IconHeadphones />
                 </ActionIcon>
-                <ActionIcon variant="transparent" color="white">
-                  <IconSettings />
-                </ActionIcon>
+                {role === "Admin" && (
+                  <ActionIcon
+                    variant="transparent"
+                    color="white"
+                    onClick={() => {
+                      console.log("admin");
+                      nav({ to: "/admin" });
+                    }}
+                  >
+                    <IconSettings />
+                  </ActionIcon>
+                )}
               </Group>
             </Group>
           </Stack>

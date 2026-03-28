@@ -20,7 +20,7 @@ public class ParameterService(NoobzCordContext context, CacheService cacheServic
 
         return await cacheService.AddSliding(GetParametersCacheKey(), async (entry) =>
         {
-            return (await context.Translations
+            return (await context.Parameters
                              .AsNoTracking()
                              .ToListAsync(cancellationToken: cancellationToken))
                              .ToDictionary(entity => entity.Name, entity => entity.Value);

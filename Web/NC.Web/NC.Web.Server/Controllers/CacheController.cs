@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using NC.Core.Services;
 
 namespace NC.Web.Server.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class CacheController(CacheService cacheService) : BaseController
     {
         [HttpPost]

@@ -15,16 +15,17 @@ namespace NC.Core.Services
 {
     public class UserService(NoobzCordContext context, ParameterService parameterService, MailService mailService, IOptions<JwtSettings> jwtSettings, IOptions<AppSettings> appSettings)
     {
-        private string GenerateJwt(Guid userId, string name, string contact)
+        private string GenerateJwt(User user)
         {
             var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Value.Secret));
             var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-                new Claim(ClaimTypes.Name, name),
-                new Claim(ClaimTypes.Email, contact),
+                new Claim(ClaimTypes.NameIdentifier, user.ID.ToString()),
+                new Claim(ClaimTypes.Name, user.Name),
+                new Claim(ClaimTypes.Email, user.Contact),
+                new Claim(ClaimTypes.Role, user.Role.ToString()),
             };
 
             var token = new JwtSecurityToken(
@@ -56,10 +57,11 @@ namespace NC.Core.Services
                         var userPassword = await context.UserPasswords.FirstOrDefaultAsync(entity => entity.UserID == user.ID, cancellationToken);
                         if (userPassword != null && HashHelper.Verify(request.Password, userPassword.Hash))
                         {
-                            response.SetSuccess(new LoginResponse()
+                            response.SetSuccess(StatusCodes.Status200OK, new LoginResponse()
                             {
                                 Name = user.Name,
-                                Token = GenerateJwt(user.ID, user.Name, user.Contact)
+                                Token = GenerateJwt(user),
+                                Role = (UserRoleEnum)user.Role
                             });
                         }
                         break;
@@ -91,7 +93,7 @@ namespace NC.Core.Services
                     Contact = request.Contact,
                     RegistrationDate = registration,
                     Status = (byte)UserStatusEnum.WaitingForActivation,
-                    Role = 0,
+                    Role = (byte)UserRoleEnum.Member
                 };
                 var hash = HashHelper.Hash(request.Password);
                 var userPassword = new UserPassword

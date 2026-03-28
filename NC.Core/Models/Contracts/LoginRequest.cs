@@ -12,7 +12,7 @@ namespace NC.Core.Models.Contracts
 
 
         [Required(ErrorMessage = "VIEW.LOGIN.FORM.VALIDATON.PASSWORD.REQUIRED")]
-        [StringLength(10, MinimumLength = 8, ErrorMessage = "VIEW.LOGIN.FORM.VALIDATON.PASSWORD.LENGTH")]
+        [StringLength(16, MinimumLength = 8, ErrorMessage = "VIEW.LOGIN.FORM.VALIDATON.PASSWORD.LENGTH")]
         public required string Password { get; set; }
     }
 }

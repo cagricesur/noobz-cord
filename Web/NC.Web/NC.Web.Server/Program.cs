@@ -4,20 +4,32 @@ using NC.Core;
 using NC.Core.Models.Settings;
 using Scalar.AspNetCore;
 using System.Text;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 builder.Services.AddOpenApi();
 builder.Services.AddMemoryCache(options => builder.Configuration.GetSection("MemoryCache").Bind(options));
 builder.Services.AddNoobzCordDbContext(builder.Configuration.GetConnectionString("NoobzCord"));
 builder.Services.AddNoobzCordServices(builder.Configuration);
 
 
+
 var jwtSettings = new JwtSettings();
 builder.Configuration.GetSection(JwtSettings.Section).Bind(jwtSettings);
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters

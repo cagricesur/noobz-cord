@@ -1,23 +1,42 @@
-import Axios, { type AxiosRequestConfig, type AxiosError } from "axios";
+import Axios, { type AxiosError, type AxiosRequestConfig } from "axios";
+import { type ProblemDetails } from "./generated/models";
+import { notifications } from "@mantine/notifications";
 
-const TOKEN_KEY = "noobz_cord_token";
+import i18n from "@noobz-cord/i18n";
 
 export const AXIOS_INSTANCE = Axios.create({
   baseURL: "",
   headers: { "Content-Type": "application/json" },
 });
 
-AXIOS_INSTANCE.interceptors.request.use((config) => {
-  if (typeof window !== "undefined") {
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (token) config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+AXIOS_INSTANCE.interceptors.request.use(
+  (config) => {
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
+
+AXIOS_INSTANCE.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error: AxiosError<ProblemDetails>) => {
+    notifications.clean();
+    notifications.show({
+      position: "top-center",
+      withBorder: false,
+      withCloseButton: true,
+      autoClose: 10000,
+      message: i18n.t(error.response?.data.title ?? "SERVICE_ERROR"),
+    });
+  },
+);
 
 export const customInstance = <T>(
   config: AxiosRequestConfig,
-  options?: AxiosRequestConfig
+  options?: AxiosRequestConfig,
 ): Promise<T> => {
   return AXIOS_INSTANCE({ ...config, ...options }).then(({ data }) => data);
 };

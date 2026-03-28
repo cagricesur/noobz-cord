@@ -11,19 +11,25 @@ const ActivationView: React.FunctionComponent = () => {
   const [isSuccess, setSuccess] = useState<boolean | undefined>(undefined);
 
   useEffect(() => {
+    const controller = new AbortController();
     if (search.token) {
       authApi
-        .postApiAuthActivate({ token: search.token })
+        .postApiAuthActivate(
+          { token: search.token },
+          {
+            signal: controller.signal,
+          },
+        )
         .then(() => {
           setSuccess(true);
-          setTimeout(() => {
-            nav({ to: "/" });
-          }, 1000);
         })
         .catch(() => {
           setSuccess(false);
         });
     }
+    return () => {
+      controller.abort();
+    };
   }, [nav, search.token]);
 
   return (

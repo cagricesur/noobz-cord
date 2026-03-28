@@ -19,3 +19,4 @@ export * from "./postApiParameterAddMissingTranslationsParams";
 export * from "./problemDetails";
 export * from "./registrationRequest";
 export * from "./registrationResponse";
+export * from "./userRoleEnum";

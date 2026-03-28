@@ -15,6 +15,7 @@ import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProtectedSettingsRouteImport } from './routes/_protected/settings'
 import { Route as ProtectedDashboardRouteImport } from './routes/_protected/dashboard'
+import { Route as ProtectedAdminRouteImport } from './routes/_protected/admin'
 
 const ErrorRoute = ErrorRouteImport.update({
   id: '/error',
@@ -45,11 +46,17 @@ const ProtectedDashboardRoute = ProtectedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => ProtectedRoute,
 } as any)
+const ProtectedAdminRoute = ProtectedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => ProtectedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/activation': typeof ActivationRoute
   '/error': typeof ErrorRoute
+  '/admin': typeof ProtectedAdminRoute
   '/dashboard': typeof ProtectedDashboardRoute
   '/settings': typeof ProtectedSettingsRoute
 }
@@ -57,6 +64,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/activation': typeof ActivationRoute
   '/error': typeof ErrorRoute
+  '/admin': typeof ProtectedAdminRoute
   '/dashboard': typeof ProtectedDashboardRoute
   '/settings': typeof ProtectedSettingsRoute
 }
@@ -66,20 +74,28 @@ export interface FileRoutesById {
   '/_protected': typeof ProtectedRouteWithChildren
   '/activation': typeof ActivationRoute
   '/error': typeof ErrorRoute
+  '/_protected/admin': typeof ProtectedAdminRoute
   '/_protected/dashboard': typeof ProtectedDashboardRoute
   '/_protected/settings': typeof ProtectedSettingsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/activation' | '/error' | '/dashboard' | '/settings'
+  fullPaths:
+    | '/'
+    | '/activation'
+    | '/error'
+    | '/admin'
+    | '/dashboard'
+    | '/settings'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/activation' | '/error' | '/dashboard' | '/settings'
+  to: '/' | '/activation' | '/error' | '/admin' | '/dashboard' | '/settings'
   id:
     | '__root__'
     | '/'
     | '/_protected'
     | '/activation'
     | '/error'
+    | '/_protected/admin'
     | '/_protected/dashboard'
     | '/_protected/settings'
   fileRoutesById: FileRoutesById
@@ -135,15 +151,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedDashboardRouteImport
       parentRoute: typeof ProtectedRoute
     }
+    '/_protected/admin': {
+      id: '/_protected/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof ProtectedAdminRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
   }
 }
 
 interface ProtectedRouteChildren {
+  ProtectedAdminRoute: typeof ProtectedAdminRoute
   ProtectedDashboardRoute: typeof ProtectedDashboardRoute
   ProtectedSettingsRoute: typeof ProtectedSettingsRoute
 }
 
 const ProtectedRouteChildren: ProtectedRouteChildren = {
+  ProtectedAdminRoute: ProtectedAdminRoute,
   ProtectedDashboardRoute: ProtectedDashboardRoute,
   ProtectedSettingsRoute: ProtectedSettingsRoute,
 }
