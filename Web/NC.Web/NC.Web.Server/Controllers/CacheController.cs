@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using NC.Core.Services;
 
 namespace NC.Web.Server.Controllers
@@ -19,6 +20,12 @@ namespace NC.Web.Server.Controllers
         {
             cacheService.Clear();
             return Task.FromResult(Ok());
+        }
+
+        [HttpGet]
+        public Task<IReadOnlyDictionary<string, MemoryCacheEntryOptions>> Statistics()
+        {
+            return Task.FromResult(cacheService.GetStatistics());
         }
     }
 }

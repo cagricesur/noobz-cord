@@ -6,12 +6,7 @@ namespace NC.Core.Services
 
     public class CacheService(IMemoryCache cache)
     {
-        public ConcurrentBag<string> Keys { get; } = [];
-        public Task<T> Add<T>(string key, Func<ICacheEntry, Task<T>> factory)
-             where T : new()
-        {
-            return Add(key, factory, null);
-        }
+        public ConcurrentDictionary<string, MemoryCacheEntryOptions> CacheBag { get; } = [];
         public Task<T> AddRelative<T>(string key, Func<ICacheEntry, Task<T>> factory, TimeSpan absoluteExpiration)
              where T : new()
         {
@@ -36,15 +31,19 @@ namespace NC.Core.Services
                 SlidingExpiration = slidingExpiration
             });
         }
-        private async Task<T> Add<T>(string key, Func<ICacheEntry, Task<T>> factory, MemoryCacheEntryOptions? createOptions)
+        private async Task<T> Add<T>(string key, Func<ICacheEntry, Task<T>> factory, MemoryCacheEntryOptions createOptions)
             where T : new()
         {
-            if (!Keys.Contains(key))
-            {
-                Keys.Add(key);
-            }
+
+            CacheBag.AddOrUpdate(key, createOptions, (k, v) => createOptions);
             var cached = await cache.GetOrCreateAsync(key, factory, createOptions);
             return cached ?? new T();
+        }
+
+        public IReadOnlyDictionary<string, MemoryCacheEntryOptions>  GetStatistics()
+        {
+
+           return CacheBag.ToDictionary(kvp => kvp.Key, kvp => kvp.Value).AsReadOnly();
         }
 
         public void Remove(string key)
@@ -53,11 +52,11 @@ namespace NC.Core.Services
         }
         public void Clear()
         {
-            foreach (var key in Keys)
+            foreach (var cache in CacheBag)
             {
-                Remove(key);
+                Remove(cache.Key);
             }
-            Keys.Clear();
+            CacheBag.Clear();
         }
     }
 }

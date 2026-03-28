@@ -25,7 +25,7 @@ namespace NC.Core.Services
                 new Claim(ClaimTypes.NameIdentifier, user.ID.ToString()),
                 new Claim(ClaimTypes.Name, user.Name),
                 new Claim(ClaimTypes.Email, user.Contact),
-                new Claim(ClaimTypes.Role, user.Role.ToString()),
+                new Claim(ClaimTypes.Role, ((UserRoleEnum)user.Role).ToString()),
             };
 
             var token = new JwtSecurityToken(

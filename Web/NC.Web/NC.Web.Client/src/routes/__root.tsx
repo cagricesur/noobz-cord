@@ -64,7 +64,6 @@ const RootLayout: React.FunctionComponent = () => {
                     variant="transparent"
                     color="white"
                     onClick={() => {
-                      console.log("admin");
                       nav({ to: "/admin" });
                     }}
                   >

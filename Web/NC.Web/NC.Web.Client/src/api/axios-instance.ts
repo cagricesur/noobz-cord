@@ -1,8 +1,9 @@
+import { notifications } from "@mantine/notifications";
 import Axios, { type AxiosError, type AxiosRequestConfig } from "axios";
 import { type ProblemDetails } from "./generated/models";
-import { notifications } from "@mantine/notifications";
 
 import i18n from "@noobz-cord/i18n";
+import { useAuthStore } from "@noobz-cord/stores";
 
 export const AXIOS_INSTANCE = Axios.create({
   baseURL: "",
@@ -11,6 +12,10 @@ export const AXIOS_INSTANCE = Axios.create({
 
 AXIOS_INSTANCE.interceptors.request.use(
   (config) => {
+    const token = useAuthStore.getState().user?.token;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => {
@@ -31,6 +36,7 @@ AXIOS_INSTANCE.interceptors.response.use(
       autoClose: 10000,
       message: i18n.t(error.response?.data.title ?? "SERVICE_ERROR"),
     });
+    return Promise.resolve();
   },
 );
 
