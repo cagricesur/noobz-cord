@@ -4,7 +4,7 @@
  * NC.Web.Server | v1
  * OpenAPI spec version: 1.0.0
  */
-import type { PostApiCacheRemoveParams } from "./models";
+import type { CacheEntryStatistics, PostApiCacheRemoveParams } from "./models";
 
 import { customInstance } from "../axios-instance";
 
@@ -28,11 +28,22 @@ export const getCache = () => {
       options,
     );
   };
-  return { postApiCacheRemove, postApiCacheClear };
+  const getApiCacheStatistics = (
+    options?: SecondParameter<typeof customInstance<CacheEntryStatistics[]>>,
+  ) => {
+    return customInstance<CacheEntryStatistics[]>(
+      { url: `/api/Cache/Statistics`, method: "GET" },
+      options,
+    );
+  };
+  return { postApiCacheRemove, postApiCacheClear, getApiCacheStatistics };
 };
 export type PostApiCacheRemoveResult = NonNullable<
   Awaited<ReturnType<ReturnType<typeof getCache>["postApiCacheRemove"]>>
 >;
 export type PostApiCacheClearResult = NonNullable<
   Awaited<ReturnType<ReturnType<typeof getCache>["postApiCacheClear"]>>
+>;
+export type GetApiCacheStatisticsResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getCache>["getApiCacheStatistics"]>>
 >;

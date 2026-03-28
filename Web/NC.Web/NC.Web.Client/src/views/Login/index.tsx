@@ -26,8 +26,8 @@ import GradientText from "./GradientText";
 import { getAuth } from "@noobz-cord/api";
 import logo from "@noobz-cord/assets/logo.png";
 import { useAuthStore } from "@noobz-cord/stores";
-import classes from "./index.module.scss";
 import { getRouteApi } from "@tanstack/react-router";
+import classes from "./index.module.scss";
 
 interface IAuthFormProps {
   registration?: boolean;
@@ -38,6 +38,8 @@ interface IAuthFormActions {
 
 const COOKIE_KEY_MAIL = "noobzcord-auth-mail";
 const COOKIE_KEY_REMEMBER = "noobzcord-auth-remember";
+
+const authApi = getAuth();
 
 const AuthForm = forwardRef<IAuthFormActions, IAuthFormProps>((props, ref) => {
   const { t } = useTranslation();
@@ -134,8 +136,7 @@ const AuthForm = forwardRef<IAuthFormActions, IAuthFormProps>((props, ref) => {
     password2: string;
     remember: boolean;
   }) => {
-    const api = getAuth();
-    api
+    authApi
       .postApiAuthLogin({
         contact: values.mail,
         password: values.password1,

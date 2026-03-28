@@ -28,14 +28,16 @@ AXIOS_INSTANCE.interceptors.response.use(
     return response;
   },
   (error: AxiosError<ProblemDetails>) => {
-    notifications.clean();
-    notifications.show({
-      position: "top-center",
-      withBorder: false,
-      withCloseButton: true,
-      autoClose: 10000,
-      message: i18n.t(error.response?.data.title ?? "SERVICE_ERROR"),
-    });
+    if (error.code != "ERR_CANCELED") {
+      notifications.clean();
+      notifications.show({
+        position: "top-center",
+        withBorder: false,
+        withCloseButton: true,
+        autoClose: 10000,
+        message: i18n.t(error.response?.data.title ?? "SERVICE_ERROR"),
+      });
+    }
     return Promise.resolve();
   },
 );

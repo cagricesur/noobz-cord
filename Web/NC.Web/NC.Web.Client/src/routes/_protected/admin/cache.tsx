@@ -1,9 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import CacheManagementView from "@noobz-cord/views/Admin/CacheManagement";
 
 export const Route = createFileRoute("/_protected/admin/cache")({
-  component: RouteComponent,
+  component: CacheManagementView,
 });
-
-function RouteComponent() {
-  return <div>Hello "/_protected/admin/cache"!</div>;
-}

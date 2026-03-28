@@ -7,6 +7,7 @@
 
 export * from "./activationRequest";
 export * from "./activationResponse";
+export * from "./cacheEntryStatistics";
 export * from "./getApiParameterGetTranslationsParams";
 export * from "./keyValuePairOfstringAndstring";
 export * from "./loginRequest";

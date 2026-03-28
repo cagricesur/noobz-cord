@@ -2,10 +2,11 @@ import { getAuth } from "@noobz-cord/api";
 import { getRouteApi } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
-const routeApi = getRouteApi("/activation");
 const authApi = getAuth();
 
 const ActivationView: React.FunctionComponent = () => {
+  const routeApi = getRouteApi("/activation");
+
   const search = routeApi.useSearch();
   const nav = routeApi.useNavigate();
   const [isSuccess, setSuccess] = useState<boolean | undefined>(undefined);

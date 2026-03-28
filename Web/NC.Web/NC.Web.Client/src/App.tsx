@@ -16,8 +16,9 @@ import "@mantine/notifications/styles.css";
 import "@mantine/nprogress/styles.css";
 import "@mantine/spotlight/styles.css";
 import "@mantine/tiptap/styles.css";
-import "@noobz-cord/i18n";
 import "@noobz-cord/theme/theme.scss";
+
+import "@noobz-cord/i18n";
 
 declare module "@tanstack/react-router" {
   interface Register {
