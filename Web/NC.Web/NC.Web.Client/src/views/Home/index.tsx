@@ -1,12 +1,4 @@
-import {
-  Avatar,
-  Card,
-  Flex,
-  Group,
-  Stack,
-  Text,
-  useMantineTheme,
-} from "@mantine/core";
+import { Flex, Group, useMantineTheme } from "@mantine/core";
 import * as signalR from "@microsoft/signalr";
 import { useAuthStore } from "@noobz-cord/stores";
 import { getRouteApi } from "@tanstack/react-router";
@@ -23,46 +15,9 @@ import {
 } from "@tabler/icons-react";
 
 import { useToggle } from "@mantine/hooks";
+import { IUser, UserCard } from "./UserCard";
 
 import classnames from "./index.module.scss";
-
-interface IUser {
-  name: string;
-  muted?: boolean;
-  deafened?: boolean;
-  speaking?: boolean;
-}
-
-const UserCard: React.FunctionComponent<IUser> = (user) => {
-  const theme = useMantineTheme();
-  return (
-    <Card
-      radius="md"
-      w={256}
-      withBorder
-      className={user.speaking ? classnames.speaking : undefined}
-    >
-      <Stack justify="center" align="center">
-        <Avatar name={user.name} radius="xl" color="initials" size={48} />
-        <Flex w={224} justify="center">
-          <Stack>
-            <Text truncate="end">{user.name}</Text>
-            {(user.muted || user.deafened) && (
-              <Group>
-                {user.muted && (
-                  <IconMicrophoneOff color={theme.colors.red[6]} />
-                )}
-                {user.deafened && (
-                  <IconHeadphonesOff color={theme.colors.red[6]} />
-                )}
-              </Group>
-            )}
-          </Stack>
-        </Flex>
-      </Stack>
-    </Card>
-  );
-};
 
 const HomeView: React.FunctionComponent = () => {
   const route = getRouteApi("/");
@@ -86,77 +41,77 @@ const HomeView: React.FunctionComponent = () => {
   };
 
   useEffect(() => {
-    if (currentUser) {
-      const connection = new signalR.HubConnectionBuilder()
-        .withUrl("/hubs/voice")
-        .build();
-
-      connection.on("UserLeft", (user: string) => {
-        setUsers((prevUsers) => prevUsers.filter((u) => u.name !== user));
-      });
-      connection.on("UserMultipleSessionDisconnect", () => {
-        logout();
-        nav({ to: "/", replace: true });
-      });
-      connection.on("UserJoined", (user: string) => {
-        setUsers((prevUsers) => [...prevUsers, { name: user }]);
-      });
-      connection.on("UsersInRoomInit", (users: string[]) => {
-        setUsers(users.map((name) => ({ name })));
-      });
-
-      connection.on("UserMutedSelf", (user: string) => {
-        setUsers((prevUsers) =>
-          prevUsers.map((u) => (u.name === user ? { ...u, muted: true } : u)),
-        );
-      });
-      connection.on("UserDeafenedSelf", (user: string) => {
-        setUsers((prevUsers) =>
-          prevUsers.map((u) =>
-            u.name === user ? { ...u, deafened: true } : u,
-          ),
-        );
-      });
-      connection.on("UserUnMutedSelf", (user: string) => {
-        setUsers((prevUsers) =>
-          prevUsers.map((u) => (u.name === user ? { ...u, muted: false } : u)),
-        );
-      });
-      connection.on("UserUnDeafenedSelf", (user: string) => {
-        setUsers((prevUsers) =>
-          prevUsers.map((u) =>
-            u.name === user ? { ...u, deafened: false } : u,
-          ),
-        );
-      });
-      connection.on("UserStartedSpeaking", (user: string) => {
-        setUsers((prevUsers) =>
-          prevUsers.map((u) =>
-            u.name === user ? { ...u, speaking: true } : u,
-          ),
-        );
-      });
-      connection.on("UserStoppedSpeaking", (user: string) => {
-        setUsers((prevUsers) =>
-          prevUsers.map((u) =>
-            u.name === user ? { ...u, speaking: false } : u,
-          ),
-        );
-      });
-
-      connection.start().then(
-        () => {
-          hubConnectionRef.current = connection;
-          hubConnectionRef.current.send("JoinGroup", currentUser);
-        },
-        (err) => {
-          console.error("SignalR connection error: ", err);
-        },
-      );
+    if (!currentUser) {
+      return;
     }
 
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl("/hubs/voice")
+      .build();
+    let disposed = false;
+
+    connection.on("UserLeft", (user: string) => {
+      setUsers((prevUsers) => prevUsers.filter((u) => u.name !== user));
+    });
+    connection.on("UserMultipleSessionDisconnect", () => {
+      logout();
+      nav({ to: "/", replace: true });
+    });
+    connection.on("UserJoined", (user: string) => {
+      setUsers((prevUsers) => [...prevUsers, { name: user }]);
+    });
+    connection.on("UsersInRoomInit", (users: string[]) => {
+      setUsers(users.map((name) => ({ name })));
+    });
+
+    connection.on("UserMutedSelf", (user: string) => {
+      setUsers((prevUsers) =>
+        prevUsers.map((u) => (u.name === user ? { ...u, muted: true } : u)),
+      );
+    });
+    connection.on("UserDeafenedSelf", (user: string) => {
+      setUsers((prevUsers) =>
+        prevUsers.map((u) => (u.name === user ? { ...u, deafened: true } : u)),
+      );
+    });
+    connection.on("UserUnMutedSelf", (user: string) => {
+      setUsers((prevUsers) =>
+        prevUsers.map((u) => (u.name === user ? { ...u, muted: false } : u)),
+      );
+    });
+    connection.on("UserUnDeafenedSelf", (user: string) => {
+      setUsers((prevUsers) =>
+        prevUsers.map((u) => (u.name === user ? { ...u, deafened: false } : u)),
+      );
+    });
+    connection.on("UserStartedSpeaking", (user: string) => {
+      setUsers((prevUsers) =>
+        prevUsers.map((u) => (u.name === user ? { ...u, speaking: true } : u)),
+      );
+    });
+    connection.on("UserStoppedSpeaking", (user: string) => {
+      setUsers((prevUsers) =>
+        prevUsers.map((u) => (u.name === user ? { ...u, speaking: false } : u)),
+      );
+    });
+
+    void connection
+      .start()
+      .then(() => {
+        if (disposed) return;
+        hubConnectionRef.current = connection;
+        return connection.send("JoinGroup", currentUser);
+      })
+      .catch((err) => {
+        if (!disposed) {
+          console.error("SignalR connection error: ", err);
+        }
+      });
+
     return () => {
-      void hubConnectionRef.current?.stop();
+      disposed = true;
+      hubConnectionRef.current = null;
+      void connection.stop();
     };
   }, [currentUser, logout, nav]);
 
@@ -188,23 +143,23 @@ const HomeView: React.FunctionComponent = () => {
             variant="transparent"
             color={isMuted ? red() : white()}
             onClick={() => {
-              debugger;
-              toggleMuted();
+              if (!currentUser) return;
               if (isMuted) {
                 hubConnectionRef.current
-                  ?.send("UnMuteSelf")
+                  ?.send("UnMuteSelf", currentUser)
                   .then(() => {})
                   .catch((err) => {
                     console.error("Error unmuting self: ", err);
                   });
               } else {
                 hubConnectionRef.current
-                  ?.send("MuteSelf")
+                  ?.send("MuteSelf", currentUser)
                   .then(() => {})
                   .catch((err) => {
                     console.error("Error muting self: ", err);
                   });
               }
+              toggleMuted();
             }}
           >
             {isMuted ? <IconMicrophoneOff /> : <IconMicrophone />}
@@ -213,18 +168,30 @@ const HomeView: React.FunctionComponent = () => {
             variant="transparent"
             color={isDeafened ? red() : white()}
             onClick={() => {
-              toggleDeafened();
+              if (!currentUser) return;
               if (isDeafened) {
-                hubConnectionRef.current?.send("UnDeafenSelf");
+                void hubConnectionRef.current?.send(
+                  "UnDeafenSelf",
+                  currentUser,
+                );
               } else {
-                hubConnectionRef.current?.send("DeafenSelf");
+                void hubConnectionRef.current?.send("DeafenSelf", currentUser);
               }
+              toggleDeafened();
             }}
           >
             {isDeafened ? <IconHeadphonesOff /> : <IconHeadphones />}
           </ActionIcon>
 
-          <ActionIcon variant="transparent" color={red()}>
+          <ActionIcon
+            variant="transparent"
+            color={red()}
+            onClick={() => {
+              void hubConnectionRef.current?.send("UserLeft", currentUser);
+              logout();
+              nav({ to: "/", replace: true });
+            }}
+          >
             <IconPhoneOff />
           </ActionIcon>
         </Group>
