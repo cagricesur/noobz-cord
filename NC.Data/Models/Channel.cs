@@ -18,4 +18,6 @@ public partial class Channel
     public string Name { get; set; } = null!;
 
     public byte Kind { get; set; }
+
+    public byte Status { get; set; }
 }

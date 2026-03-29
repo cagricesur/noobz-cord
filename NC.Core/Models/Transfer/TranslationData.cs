@@ -1,4 +1,4 @@
-﻿namespace NC.Core.Models
+﻿namespace NC.Core.Models.Transfer
 {
     public class TranslationData : ParameterData
     {

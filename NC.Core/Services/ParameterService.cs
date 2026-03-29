@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using NC.Core.Models;
+using NC.Core.Models.Transfer;
 using NC.Data.Models;
 
 namespace NC.Core.Services;

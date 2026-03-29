@@ -28,6 +28,7 @@ namespace NC.Core
                     .AddSingleton<CacheService>()
                     .AddScoped<MailService>()
                     .AddScoped<UserService>()
+                    .AddScoped<ChannelService>()
                     .AddScoped<ParameterService>();
         }
     }

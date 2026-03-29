@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NC.Core.Models;
+using NC.Core.Models.Transfer;
 using NC.Core.Services;
 
 namespace NC.Web.Server.Controllers;
