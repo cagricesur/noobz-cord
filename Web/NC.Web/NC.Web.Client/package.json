@@ -25,6 +25,7 @@
     "@mantine/nprogress": "^8.3.16",
     "@mantine/spotlight": "^8.3.16",
     "@mantine/tiptap": "^8.3.16",
+    "@microsoft/signalr": "^10.0.0",
     "@tabler/icons-react": "^3.25.0",
     "@tanstack/react-router": "^1.166.2",
     "@tanstack/react-router-devtools": "^1.166.2",
