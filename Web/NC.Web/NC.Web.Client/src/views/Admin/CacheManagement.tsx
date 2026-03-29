@@ -1,10 +1,13 @@
-import { ActionIcon, Button, Group, Stack, Table } from "@mantine/core";
+import { ActionIcon, Button, Group, Stack, Table, Text } from "@mantine/core";
 import { type CacheEntryStatistics, getCache } from "@noobz-cord/api";
 import {
+  IconCheckFilled,
+  IconMinus,
   IconRefresh,
   IconSquareRoundedXFilled,
   IconXFilled,
 } from "@tabler/icons-react";
+import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -12,6 +15,7 @@ const cacheApi = getCache();
 
 const CacheManagementView: React.FunctionComponent = () => {
   const [stats, setStats] = useState<CacheEntryStatistics[]>([]);
+  const [date, setDate] = useState<dayjs.Dayjs>(dayjs());
   const { t } = useTranslation();
 
   const remove = (key: string) => {
@@ -27,6 +31,7 @@ const CacheManagementView: React.FunctionComponent = () => {
   };
   const refresh = (signal?: AbortSignal) => {
     cacheApi.getApiCacheStatistics({ signal }).then((response) => {
+      setDate(dayjs());
       setStats(response ?? []);
     });
   };
@@ -43,25 +48,28 @@ const CacheManagementView: React.FunctionComponent = () => {
 
   return (
     <Stack>
-      <Group justify="flex-end">
-        <Button color="red" rightSection={<IconXFilled />} onClick={clear}>
-          Clear
-        </Button>
-        <Button
-          color="green"
-          rightSection={<IconRefresh />}
-          onClick={() => refresh()}
-        >
-          Refresh
-        </Button>
+      <Group justify="space-between">
+        <Text>{date.format("YYYY-MM-DD HH:mm:ss")}</Text>
+        <Group>
+          <Button color="red" rightSection={<IconXFilled />} onClick={clear}>
+            Clear
+          </Button>
+          <Button
+            color="green"
+            rightSection={<IconRefresh />}
+            onClick={() => refresh()}
+          >
+            Refresh
+          </Button>
+        </Group>
       </Group>
       <Table stickyHeader stickyHeaderOffset={60}>
         <Table.Thead>
           <Table.Tr>
             <Table.Th>{t("VIEW.CACHEMANAGEMENT.TH.KEY")}</Table.Th>
             <Table.Th>{t("VIEW.CACHEMANAGEMENT.TH.ISSLIDING")}</Table.Th>
-            <Table.Th>{t("VIEW.CACHEMANAGEMENT.TH.SIZE")}</Table.Th>
             <Table.Th>{t("VIEW.CACHEMANAGEMENT.TH.EXPIRATION")}</Table.Th>
+            <Table.Th>{t("VIEW.CACHEMANAGEMENT.TH.SIZE")}</Table.Th>
             <Table.Th></Table.Th>
           </Table.Tr>
         </Table.Thead>
@@ -70,9 +78,13 @@ const CacheManagementView: React.FunctionComponent = () => {
             return (
               <Table.Tr key={stat.key}>
                 <Table.Td>{stat.key}</Table.Td>
-                <Table.Td>{stat.isSliding}</Table.Td>
+                <Table.Td align="center">
+                  {stat.isSliding ? <IconCheckFilled /> : <IconMinus />}
+                </Table.Td>
+                <Table.Td align="center">
+                  {dayjs(stat.expiration).format("YYYY-MM-DD HH:mm:ss")}
+                </Table.Td>
                 <Table.Td align="right">{stat.approximateSizeBytes}</Table.Td>
-                <Table.Td align="right">{stat.expiration}</Table.Td>
                 <Table.Td>
                   <ActionIcon
                     variant="transparent"

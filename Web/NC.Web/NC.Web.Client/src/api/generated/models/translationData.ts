@@ -5,6 +5,9 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type PostApiParameterAddMissingTranslationsBodyThree = null | {
-  [key: string]: string;
-};
+export interface TranslationData {
+  language?: string;
+  id?: string;
+  name?: string;
+  value?: string;
+}

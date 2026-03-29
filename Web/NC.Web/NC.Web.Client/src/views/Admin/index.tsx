@@ -5,11 +5,11 @@ import {
   IconLanguage,
   type IconProps,
 } from "@tabler/icons-react";
-import { getRouteApi, Outlet } from "@tanstack/react-router";
+import { getRouteApi, Outlet, useRouterState } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
 import type { FileRoutesByTo } from "@noobz-cord/routeTree.gen";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import classes from "./index.module.scss";
 
 interface IAdminManager {
@@ -36,6 +36,8 @@ const managers: IAdminManager[] = [
 const AdminView: React.FunctionComponent = () => {
   const indexPath: keyof FileRoutesByTo = "/admin";
   const router = getRouteApi("/_protected/admin");
+  const currentPath = useRouterState({ select: (s) => s.location.pathname });
+
   const [currentManager, setCurrentManager] = useState<
     IAdminManager | undefined
   >();
@@ -46,6 +48,12 @@ const AdminView: React.FunctionComponent = () => {
     nav({ to: manager.path });
     setCurrentManager(manager);
   };
+
+  useEffect(() => {
+    if (currentManager && indexPath === currentPath) {
+      setCurrentManager(undefined);
+    }
+  }, [currentManager, currentPath]);
 
   return (
     <Stack classNames={classes}>
@@ -81,7 +89,7 @@ const AdminView: React.FunctionComponent = () => {
                 withBorder
                 onClick={() => navigate(manager)}
               >
-                <Stack justify="center" align="center" w={320}>
+                <Stack justify="center" align="center">
                   <manager.icon size={48} />
                   <Text size="sm" c="dimmed">
                     {t(manager.name)}

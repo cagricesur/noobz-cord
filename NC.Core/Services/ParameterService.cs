@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using NC.Core.Models;
 using NC.Data.Models;
 
 namespace NC.Core.Services;
@@ -14,7 +15,7 @@ public class ParameterService(NoobzCordContext context, CacheService cacheServic
         return string.Join(".", nameof(ParameterService), nameof(GetTranslations), language);
     }
 
-    public async Task<Dictionary<string, string>> GetParameteters(
+    public async Task<List<ParameterData>> GetParameteters(
         CancellationToken cancellationToken)
     {
 
@@ -23,18 +24,23 @@ public class ParameterService(NoobzCordContext context, CacheService cacheServic
             return (await context.Parameters
                              .AsNoTracking()
                              .ToListAsync(cancellationToken: cancellationToken))
-                             .ToDictionary(entity => entity.Name, entity => entity.Value);
+                             .Select(entity => new ParameterData()
+                             {
+                                 ID = entity.ID,
+                                 Name = entity.Name,
+                                 Value = entity.Value,
+                             })
+                             .ToList();
         }, TimeSpan.FromHours(1));
     }
 
-    public async Task<string?> GetParameter(string name, CancellationToken cancellationToken)
+    public async Task<ParameterData?> GetParameter(string name, CancellationToken cancellationToken)
     {
         var parameters = await GetParameteters(cancellationToken);
-        parameters.TryGetValue(name, out string? value);
-        return value;
+        return parameters.FirstOrDefault(entity => entity.Name == name);
     }
 
-    public async Task<Dictionary<string, string>> GetTranslations(
+    public async Task<List<TranslationData>> GetTranslations(
         string language,
         CancellationToken cancellationToken)
     {
@@ -45,35 +51,45 @@ public class ParameterService(NoobzCordContext context, CacheService cacheServic
                              .AsNoTracking()
                              .Where(entity => entity.Language == language)
                              .ToListAsync(cancellationToken: cancellationToken))
-                             .ToDictionary(entity => entity.Name, entity => entity.Value);
+                             .Select(entity => new TranslationData()
+                             {
+                                 ID = entity.ID,
+                                 Name = entity.Name,
+                                 Value = entity.Value,
+                                  Language = entity.Language
+                             })
+                             .ToList();
         }, TimeSpan.FromHours(1));
     }
     public async Task AddMissingTranslations(
-        string language,
-        IReadOnlyDictionary<string, string>? entries,
+        List<TranslationData>? translations,
         CancellationToken cancellationToken)
     {
-        if (entries == null || entries.Count == 0)
+        if (translations == null)
             return;
 
-        foreach (var (name, value) in entries)
+        foreach (var translation in translations)
         {
-            var existing = await context.Translations.FirstOrDefaultAsync(entity => entity.Name == name && entity.Language == language, cancellationToken);
+            var existing = await context.Translations.FirstOrDefaultAsync(entity => entity.Name == translation.Name && entity.Language == translation.Language, cancellationToken);
 
             if (existing == null)
             {
                 await context.Translations.AddAsync(new Translation
                 {
                     ID = Guid.NewGuid(),
-                    Name = name,
-                    Language = language,
-                    Value = value,
+                    Name = translation.Name,
+                    Language = translation.Language,
+                    Value = translation.Value,
                 }, cancellationToken);
-
-                cacheService.Remove(GetTranslationsCacheKey(language));
             }
         }
 
         await context.SaveChangesAsync(cancellationToken);
+
+        var languages = translations.Select(entity => entity.Language).Distinct();
+        foreach (var language in languages)
+        {
+            cacheService.Remove(GetTranslationsCacheKey(language));
+        }
     }
 }

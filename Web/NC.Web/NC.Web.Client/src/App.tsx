@@ -16,8 +16,12 @@ import "@mantine/notifications/styles.css";
 import "@mantine/nprogress/styles.css";
 import "@mantine/spotlight/styles.css";
 import "@mantine/tiptap/styles.css";
+
+import "mantine-datatable/styles.css";
+
 import "@noobz-cord/theme/theme.scss";
 
+import "@noobz-cord/dayjs";
 import "@noobz-cord/i18n";
 
 declare module "@tanstack/react-router" {

@@ -46,7 +46,9 @@ export const customInstance = <T>(
   config: AxiosRequestConfig,
   options?: AxiosRequestConfig,
 ): Promise<T> => {
-  return AXIOS_INSTANCE({ ...config, ...options }).then(({ data }) => data);
+  return AXIOS_INSTANCE({ ...config, ...options }).then((response) => {
+    return response?.data;
+  });
 };
 
 export type ErrorType<Error> = AxiosError<Error>;

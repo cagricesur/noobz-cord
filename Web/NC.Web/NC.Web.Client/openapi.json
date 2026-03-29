@@ -310,7 +310,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/KeyValuePairOfstringAndstring"
+                    "$ref": "#/components/schemas/TranslationData"
                   }
                 }
               },
@@ -318,7 +318,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/KeyValuePairOfstringAndstring"
+                    "$ref": "#/components/schemas/TranslationData"
                   }
                 }
               },
@@ -326,7 +326,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/KeyValuePairOfstringAndstring"
+                    "$ref": "#/components/schemas/TranslationData"
                   }
                 }
               }
@@ -340,63 +340,34 @@
         "tags": [
           "Parameter"
         ],
-        "parameters": [
-          {
-            "name": "language",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "oneOf": [
-                  {
-                    "type": "null"
-                  },
-                  {
-                    "type": "object",
-                    "additionalProperties": {
-                      "type": "string"
-                    }
-                  }
-                ]
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TranslationData"
+                }
               }
             },
             "text/json": {
               "schema": {
-                "oneOf": [
-                  {
-                    "type": "null"
-                  },
-                  {
-                    "type": "object",
-                    "additionalProperties": {
-                      "type": "string"
-                    }
-                  }
-                ]
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TranslationData"
+                }
               }
             },
             "application/*+json": {
               "schema": {
-                "oneOf": [
-                  {
-                    "type": "null"
-                  },
-                  {
-                    "type": "object",
-                    "additionalProperties": {
-                      "type": "string"
-                    }
-                  }
-                ]
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TranslationData"
+                }
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -449,27 +420,6 @@
               "string"
             ],
             "format": "date-time"
-          }
-        }
-      },
-      "KeyValuePairOfstringAndstring": {
-        "required": [
-          "key",
-          "value"
-        ],
-        "type": "object",
-        "properties": {
-          "key": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "value": {
-            "type": [
-              "null",
-              "string"
-            ]
           }
         }
       },
@@ -578,6 +528,24 @@
         "type": "object",
         "properties": {
           "name": {
+            "type": "string"
+          }
+        }
+      },
+      "TranslationData": {
+        "type": "object",
+        "properties": {
+          "language": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "value": {
             "type": "string"
           }
         }

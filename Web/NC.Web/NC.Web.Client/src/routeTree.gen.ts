@@ -16,6 +16,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProtectedSettingsRouteImport } from './routes/_protected/settings'
 import { Route as ProtectedDashboardRouteImport } from './routes/_protected/dashboard'
 import { Route as ProtectedAdminRouteImport } from './routes/_protected/admin'
+import { Route as ProtectedAdminIndexRouteImport } from './routes/_protected/admin/index'
 import { Route as ProtectedAdminTranslationsRouteImport } from './routes/_protected/admin/translations'
 import { Route as ProtectedAdminCacheRouteImport } from './routes/_protected/admin/cache'
 
@@ -53,6 +54,11 @@ const ProtectedAdminRoute = ProtectedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => ProtectedRoute,
 } as any)
+const ProtectedAdminIndexRoute = ProtectedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProtectedAdminRoute,
+} as any)
 const ProtectedAdminTranslationsRoute =
   ProtectedAdminTranslationsRouteImport.update({
     id: '/translations',
@@ -74,16 +80,17 @@ export interface FileRoutesByFullPath {
   '/settings': typeof ProtectedSettingsRoute
   '/admin/cache': typeof ProtectedAdminCacheRoute
   '/admin/translations': typeof ProtectedAdminTranslationsRoute
+  '/admin/': typeof ProtectedAdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/activation': typeof ActivationRoute
   '/error': typeof ErrorRoute
-  '/admin': typeof ProtectedAdminRouteWithChildren
   '/dashboard': typeof ProtectedDashboardRoute
   '/settings': typeof ProtectedSettingsRoute
   '/admin/cache': typeof ProtectedAdminCacheRoute
   '/admin/translations': typeof ProtectedAdminTranslationsRoute
+  '/admin': typeof ProtectedAdminIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -96,6 +103,7 @@ export interface FileRoutesById {
   '/_protected/settings': typeof ProtectedSettingsRoute
   '/_protected/admin/cache': typeof ProtectedAdminCacheRoute
   '/_protected/admin/translations': typeof ProtectedAdminTranslationsRoute
+  '/_protected/admin/': typeof ProtectedAdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -108,16 +116,17 @@ export interface FileRouteTypes {
     | '/settings'
     | '/admin/cache'
     | '/admin/translations'
+    | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/activation'
     | '/error'
-    | '/admin'
     | '/dashboard'
     | '/settings'
     | '/admin/cache'
     | '/admin/translations'
+    | '/admin'
   id:
     | '__root__'
     | '/'
@@ -129,6 +138,7 @@ export interface FileRouteTypes {
     | '/_protected/settings'
     | '/_protected/admin/cache'
     | '/_protected/admin/translations'
+    | '/_protected/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -189,6 +199,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedAdminRouteImport
       parentRoute: typeof ProtectedRoute
     }
+    '/_protected/admin/': {
+      id: '/_protected/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof ProtectedAdminIndexRouteImport
+      parentRoute: typeof ProtectedAdminRoute
+    }
     '/_protected/admin/translations': {
       id: '/_protected/admin/translations'
       path: '/translations'
@@ -209,11 +226,13 @@ declare module '@tanstack/react-router' {
 interface ProtectedAdminRouteChildren {
   ProtectedAdminCacheRoute: typeof ProtectedAdminCacheRoute
   ProtectedAdminTranslationsRoute: typeof ProtectedAdminTranslationsRoute
+  ProtectedAdminIndexRoute: typeof ProtectedAdminIndexRoute
 }
 
 const ProtectedAdminRouteChildren: ProtectedAdminRouteChildren = {
   ProtectedAdminCacheRoute: ProtectedAdminCacheRoute,
   ProtectedAdminTranslationsRoute: ProtectedAdminTranslationsRoute,
+  ProtectedAdminIndexRoute: ProtectedAdminIndexRoute,
 }
 
 const ProtectedAdminRouteWithChildren = ProtectedAdminRoute._addFileChildren(

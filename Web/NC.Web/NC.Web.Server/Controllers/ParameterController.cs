@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NC.Core.Models;
 using NC.Core.Services;
 
 namespace NC.Web.Server.Controllers;
@@ -6,23 +8,18 @@ namespace NC.Web.Server.Controllers;
 public class ParameterController(ParameterService parameterService) : BaseController
 {
     [HttpGet]
-    public async Task<ActionResult<List<KeyValuePair<string, string>>>> GetTranslations(
+    public Task<List<TranslationData>> GetTranslations(
         [FromQuery] string language,
         CancellationToken cancellationToken)
     {
-        var translations = await parameterService.GetTranslations(language, cancellationToken);
-        return Ok(translations);
+        return parameterService.GetTranslations(language, cancellationToken);
     }
 
-
-
     [HttpPost]
-    public async Task<IActionResult> AddMissingTranslations(
-        [FromQuery] string language,
-        [FromBody] Dictionary<string, string>? entries,
-        CancellationToken cancellationToken)
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> AddMissingTranslations(List<TranslationData> translations, CancellationToken cancellationToken)
     {
-        await parameterService.AddMissingTranslations(language, entries, cancellationToken);
+        await parameterService.AddMissingTranslations(translations, cancellationToken);
         return Ok();
     }
 }

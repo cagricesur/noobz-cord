@@ -114,7 +114,7 @@ namespace NC.Core.Services
                 await context.UserTokens.AddAsync(userToken, cancellationToken);
                 await context.SaveChangesAsync(cancellationToken);
 
-                var htmlContent = await parameterService.GetParameter("REGISTRATION.HTMLCONTENT", cancellationToken) ?? string.Empty;
+                var htmlContent = (await parameterService.GetParameter("REGISTRATION.HTMLCONTENT", cancellationToken))?.Value ?? string.Empty;
                 htmlContent = htmlContent.Replace("{{YEAR}}", registration.Year.ToString());
                 htmlContent = htmlContent.Replace("{{USER_NAME}}", user.Name);
 

@@ -6,48 +6,33 @@
  */
 import type {
   GetApiParameterGetTranslationsParams,
-  KeyValuePairOfstringAndstring,
-  PostApiParameterAddMissingTranslationsBodyOne,
-  PostApiParameterAddMissingTranslationsBodyThree,
-  PostApiParameterAddMissingTranslationsBodyTwo,
-  PostApiParameterAddMissingTranslationsParams,
+  TranslationData,
 } from "./models";
 
 import { customInstance } from "../axios-instance";
-import type { BodyType } from "../axios-instance";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 export const getParameter = () => {
   const getApiParameterGetTranslations = (
     params?: GetApiParameterGetTranslationsParams,
-    options?: SecondParameter<
-      typeof customInstance<KeyValuePairOfstringAndstring[]>
-    >,
+    options?: SecondParameter<typeof customInstance<TranslationData[]>>,
   ) => {
-    return customInstance<KeyValuePairOfstringAndstring[]>(
+    return customInstance<TranslationData[]>(
       { url: `/api/Parameter/GetTranslations`, method: "GET", params },
       options,
     );
   };
   const postApiParameterAddMissingTranslations = (
-    postApiParameterAddMissingTranslationsBody:
-      | BodyType<
-          | PostApiParameterAddMissingTranslationsBodyOne
-          | PostApiParameterAddMissingTranslationsBodyTwo
-          | PostApiParameterAddMissingTranslationsBodyThree
-        >
-      | PostApiParameterAddMissingTranslationsBodyTwo
-      | PostApiParameterAddMissingTranslationsBodyThree,
-    params?: PostApiParameterAddMissingTranslationsParams,
+    translationData: TranslationData[],
     options?: SecondParameter<typeof customInstance<void>>,
   ) => {
     return customInstance<void>(
       {
         url: `/api/Parameter/AddMissingTranslations`,
         method: "POST",
-        data: postApiParameterAddMissingTranslationsBody,
-        params,
+        headers: { "Content-Type": "application/json" },
+        data: translationData,
       },
       options,
     );

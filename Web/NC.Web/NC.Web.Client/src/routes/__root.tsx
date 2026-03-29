@@ -4,6 +4,7 @@ import {
   Avatar,
   Divider,
   Group,
+  Image,
   ScrollArea,
   Stack,
   Text,
@@ -22,6 +23,9 @@ import {
   IconSettings,
 } from "@tabler/icons-react";
 
+import logo from "@noobz-cord/assets/logo.png";
+import { ColorSchemeSwitcher, LanguageSwitcher } from "@noobz-cord/components";
+
 const RootLayout: React.FunctionComponent = () => {
   const role = useAuthStore((state) => state.user?.role);
   const authenticated = useAuthStore((state) => state.authenticated);
@@ -39,7 +43,15 @@ const RootLayout: React.FunctionComponent = () => {
       disabled={!authenticated}
       transitionDuration={0}
     >
-      <AppShell.Header></AppShell.Header>
+      <AppShell.Header>
+        <Group h="100%" px="xs" justify="space-between">
+          <Image src={logo} h={48} w={48} />
+          <Group gap={0}>
+            <LanguageSwitcher />
+            <ColorSchemeSwitcher />
+          </Group>
+        </Group>
+      </AppShell.Header>
       <AppShell.Navbar p="xs" pr={0}>
         <AppShell.Section grow component={ScrollArea}></AppShell.Section>
         <AppShell.Section p="xs">

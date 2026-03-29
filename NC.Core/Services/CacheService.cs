@@ -80,11 +80,11 @@ namespace NC.Core.Services
                 if (options.SlidingExpiration.HasValue)
                 {
                     isSliding = true;
-                    expiration.Add(options.SlidingExpiration.Value);
+                    expiration = expiration.Add(options.SlidingExpiration.Value);
                 }
                 else if(options.AbsoluteExpirationRelativeToNow.HasValue)
                 {
-                    expiration.Add(options.AbsoluteExpirationRelativeToNow.Value);
+                    expiration = expiration.Add(options.AbsoluteExpirationRelativeToNow.Value);
                 }
                 else if(options.AbsoluteExpiration.HasValue)
                 {

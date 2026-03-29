@@ -1,11 +1,28 @@
+import dayjs from "dayjs";
 import i18n from "i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import Backend, { type HttpBackendOptions } from "i18next-http-backend";
 import { initReactI18next } from "react-i18next";
 
+import { getParameter, type TranslationData } from "@noobz-cord/api";
+
 const debug = import.meta.env.DEV;
+const api = getParameter();
 
 export const NC_COOKIE_LANGUAGE = "noobzcord-language";
+
+const syncDayjsLocale = (lng: string) => {
+  const code = lng.split(/[-_]/)[0]?.toLowerCase() ?? "en";
+  dayjs.locale(code === "tr" ? "tr" : "en");
+};
+
+i18n.on("initialized", () => {
+  syncDayjsLocale(i18n.language);
+});
+
+i18n.on("languageChanged", (lng) => {
+  syncDayjsLocale(lng);
+});
 
 i18n
   .use(Backend)
@@ -31,24 +48,44 @@ i18n
       bindI18n: "languageChanged languageChanging",
     },
     backend: {
-      loadPath: "/api/parameter/GetTranslations?language={{lng}}",
-      addPath: "/api/parameter/AddMissingTranslations?language={{lng}}",
-      parse: function (data: string | object) {
-        return typeof data === "string" ? JSON.parse(data) : data;
-      },
-      parsePayload: function (
+      loadPath: "{{lng}}",
+      addPath: "{{lng}}",
+      parsePayload(
         _namespace: string,
         key: string,
         fallbackValue: string,
-      ) {
+      ): Record<string, string> {
         return { [key]: fallbackValue || key };
       },
-      crossDomain: false,
-      withCredentials: false,
-      requestOptions: {
-        mode: "cors",
-        credentials: "same-origin",
-        cache: "default",
+      request(_options, language, payload, callback) {
+        if (payload) {
+          const translations = Object.entries(payload).map((kvp) => {
+            return {
+              language,
+              name: kvp[0],
+              value: kvp[1],
+            } as TranslationData;
+          });
+          api
+            .postApiParameterAddMissingTranslations(translations)
+            .then(() => {})
+            .catch(() => {});
+        } else {
+          api
+            .getApiParameterGetTranslations({ language })
+            .then((data) => {
+              const records: Record<string, string> = {};
+              for (const row of data) {
+                if (row.name) {
+                  records[row.name] = row.value ?? "";
+                }
+              }
+              callback(null, { status: 200, data: records });
+            })
+            .catch((err) => {
+              callback(err, { status: 500, data: "" });
+            });
+        }
       },
     },
     maxRetries: 3,
