@@ -19,10 +19,6 @@
    "T4TemplatePath": null,
    "Tables": [
       {
-         "Name": "[dbo].[Channel]",
-         "ObjectType": 0
-      },
-      {
          "Name": "[dbo].[Parameter]",
          "ObjectType": 0
       },

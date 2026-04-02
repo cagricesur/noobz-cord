@@ -19,16 +19,4 @@
         Moderator,
         Admin
     }
-
-    public enum ChannelKindEnum
-    {
-        Unknown,
-        Text,
-        Voice
-    }
-    public enum ChannelStatusEnum
-    {
-        Passive,
-        Active
-    }
 }

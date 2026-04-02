@@ -13,8 +13,6 @@ public partial class NoobzCordContext : DbContext
     {
     }
 
-    public virtual DbSet<Channel> Channels { get; set; }
-
     public virtual DbSet<Parameter> Parameters { get; set; }
 
     public virtual DbSet<Translation> Translations { get; set; }
