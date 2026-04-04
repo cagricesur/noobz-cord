@@ -25,9 +25,11 @@ namespace NC.Core
                     .Configure<AppSettings>(configuration.GetSection(AppSettings.Section))
                     .Configure<JwtSettings>(configuration.GetSection(JwtSettings.Section))
                     .Configure<SmtpSettings>(configuration.GetSection(SmtpSettings.Section))
+                    .Configure<LiveKitSettings>(configuration.GetSection(LiveKitSettings.Section))
                     .AddSingleton<CacheService>()
                     .AddScoped<MailService>()
                     .AddScoped<UserService>()
+                    .AddScoped<ConferenceService>()
                     .AddScoped<ParameterService>();
         }
     }

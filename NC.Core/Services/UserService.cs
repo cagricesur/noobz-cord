@@ -6,6 +6,7 @@ using NC.Core.Helpers;
 using NC.Core.Models;
 using NC.Core.Models.Contracts;
 using NC.Core.Models.Settings;
+using NC.Core.Models.Transfer;
 using NC.Data.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -69,8 +70,6 @@ namespace NC.Core.Services
             }
             return response;
         }
-
-
         public async Task<ServiceResponse<RegistrationResponse>> Register(RegistrationRequest request, CancellationToken cancellationToken)
         {
             var response = new ServiceResponse<RegistrationResponse>();
@@ -138,7 +137,6 @@ namespace NC.Core.Services
 
             return response;
         }
-
         public async Task<ServiceResponse<ActivationResponse>> Activate(ActivationRequest request, CancellationToken cancellationToken)
         {
             var response = new ServiceResponse<ActivationResponse>();
@@ -159,6 +157,19 @@ namespace NC.Core.Services
             }
 
             return response;
+        }
+
+        public async Task<UserData?> GetUser(Guid userID, CancellationToken cancellationToken)
+        {
+            var user = await context.Users.AsNoTracking().FirstOrDefaultAsync(entity => entity.ID == userID, cancellationToken);
+            if (user != null)
+            {
+                return new UserData()
+                {
+                    Name = user.Name,
+                };
+            }
+            return null;
         }
     }
 }

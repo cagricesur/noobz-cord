@@ -288,6 +288,55 @@
         }
       }
     },
+    "/api/Conference/Join": {
+      "post": {
+        "tags": [
+          "Conference"
+        ],
+        "responses": {
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConferenceResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConferenceResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConferenceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Parameter/GetTranslations": {
       "get": {
         "tags": [
@@ -420,6 +469,20 @@
               "string"
             ],
             "format": "date-time"
+          }
+        }
+      },
+      "ConferenceResponse": {
+        "type": "object",
+        "properties": {
+          "server": {
+            "type": "string"
+          },
+          "room": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
           }
         }
       },
@@ -565,6 +628,9 @@
     },
     {
       "name": "Cache"
+    },
+    {
+      "name": "Conference"
     },
     {
       "name": "Parameter"

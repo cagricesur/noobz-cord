@@ -25,6 +25,7 @@ builder.Services.AddNoobzCordDbContext(builder.Configuration.GetConnectionString
 builder.Services.AddNoobzCordServices(builder.Configuration);
 builder.Services.AddSignalR();
 
+
 var jwtSettings = new JwtSettings();
 builder.Configuration.GetSection(JwtSettings.Section).Bind(jwtSettings);
 

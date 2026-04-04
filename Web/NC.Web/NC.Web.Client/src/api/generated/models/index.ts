@@ -8,6 +8,7 @@
 export * from "./activationRequest";
 export * from "./activationResponse";
 export * from "./cacheEntryStatistics";
+export * from "./conferenceResponse";
 export * from "./getApiParameterGetTranslationsParams";
 export * from "./loginRequest";
 export * from "./loginResponse";
