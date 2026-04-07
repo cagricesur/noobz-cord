@@ -1,13 +1,11 @@
 import {
   Chat,
   ConnectionQualityIndicator,
-  ConnectionState,
   ConnectionStateToast,
   ControlBar,
   GridLayout,
   LayoutContextProvider,
   LiveKitRoom,
-  MediaDeviceMenu,
   ParticipantLoop,
   ParticipantName,
   ParticipantTile,
@@ -16,26 +14,23 @@ import {
   RoomName,
   StartAudio,
   TrackMutedIndicator,
-  useChat,
-  useConnectionState,
   useCreateLayoutContext,
   useIsSpeaking,
   useLocalParticipant,
   useParticipantContext,
   useParticipantTracks,
-  useParticipants,
   useRemoteParticipants,
   useRoomContext,
-  useRoomInfo,
   useSortedParticipants,
-  useSpeakingParticipants,
   useTracks,
   type LocalUserChoices,
 } from "@livekit/components-react";
 import {
+  Avatar,
   Badge,
   Box,
   Divider,
+  Flex,
   Group,
   Loader,
   Paper,
@@ -51,10 +46,11 @@ import {
   IconMicrophoneOff,
   IconVideo,
   IconVideoOff,
-  IconVolume,
 } from "@tabler/icons-react";
 import { Track } from "livekit-client";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
+import { useDisclosure } from "@mantine/hooks";
+import { Drawer, Button } from "@mantine/core";
 
 interface IRoomState {
   token: string;
@@ -131,212 +127,151 @@ const ParticipantSidebarRow: React.FunctionComponent = () => {
 
 const ConferenceRoomChrome: React.FunctionComponent<{
   displayRoomName?: string;
-}> = ({ displayRoomName }) => {
+}> = () => {
   const layoutContext = useCreateLayoutContext();
-  const { name: liveKitRoomName } = useRoomInfo();
-  const connectionState = useConnectionState();
-  const participants = useParticipants();
+  const [opened, { open, close }] = useDisclosure(false);
   const remoteParticipants = useRemoteParticipants();
   const sortedRemoteParticipants = useSortedParticipants(remoteParticipants);
-  const speakers = useSpeakingParticipants();
+
   const { localParticipant } = useLocalParticipant();
-  const { chatMessages } = useChat();
+
   const room = useRoomContext();
 
-  const tracks = useTracks(
-    [
-      { source: Track.Source.Camera, withPlaceholder: true },
-      { source: Track.Source.ScreenShare, withPlaceholder: false },
-    ],
-    { onlySubscribed: true },
-  );
-
-  const roomTitle = displayRoomName ?? liveKitRoomName ?? "Conference";
-
-  const speakerLabel = useMemo(() => {
-    if (speakers.length === 0) {
-      return "No active speakers";
-    }
-    return speakers
-      .map((p) => p.name || p.identity)
-      .slice(0, 4)
-      .join(", ");
-  }, [speakers]);
+  const tracks = useTracks([
+    { source: Track.Source.Camera, withPlaceholder: true },
+    { source: Track.Source.ScreenShare, withPlaceholder: false },
+  ]);
 
   return (
     <LayoutContextProvider value={layoutContext}>
-      <Box
+      <ConnectionStateToast />
+      <RoomAudioRenderer />
+      <StartAudio label="Enable room audio" />
+      <Drawer
+        opened={opened}
+        onClose={close}
+        title="Authentication"
+        position="right"
+        offset={16}
+        radius="md"
+        overlayProps={{ backgroundOpacity: 0.5, blur: 4 }}
+        scrollAreaComponent={ScrollArea.Autosize}
+      >
+        {/* Drawer content */}
+      </Drawer>
+
+      {/* <Stack
+          gap={0}
+          style={{
+            width: 280,
+            flexShrink: 0,
+            borderRight: "1px solid var(--mantine-color-dark-4)",
+            background: "var(--mantine-color-dark-8)",
+          }}
+        >
+          <Text size="sm" fw={600} px="md" py="sm">
+            Members
+          </Text>
+          <Divider />
+          <ScrollArea flex={1} type="auto" offsetScrollbars>
+            <Stack gap={4} px="sm" py="sm">
+              <Text size="xs" c="dimmed" tt="uppercase" px={8}>
+                You
+              </Text>
+              <Paper p="xs" radius="sm" withBorder>
+                <Group justify="space-between" wrap="nowrap">
+                  <Text size="sm" fw={500} lineClamp={1} style={{ flex: 1 }}>
+                    {localParticipant.name || localParticipant.identity}
+                  </Text>
+                  <Badge size="xs" variant="light">
+                    You
+                  </Badge>
+                </Group>
+              </Paper>
+              <Text size="xs" c="dimmed" tt="uppercase" px={8} pt="md">
+                Participants
+              </Text>
+              <ParticipantLoop participants={sortedRemoteParticipants}>
+                <ParticipantSidebarRow />
+              </ParticipantLoop>
+            </Stack>
+          </ScrollArea>
+        </Stack> */}
+
+      <Stack
+        gap={0}
         style={{
-          display: "flex",
-          flexDirection: "column",
           flex: 1,
-          minHeight: 0,
-          position: "relative",
+          minWidth: 0,
+          background: "var(--mantine-color-dark-9)",
         }}
       >
-        <ConnectionStateToast />
-        <RoomAudioRenderer />
-        <StartAudio label="Enable room audio" />
-
-        <Group
-          justify="space-between"
+        <Box style={{ flex: 1, minHeight: 0, position: "relative" }}>
+          <GridLayout tracks={tracks} style={{ height: "100%" }}>
+            <ParticipantTile />
+          </GridLayout>
+        </Box>
+        <Box
           px="md"
           py="sm"
           style={{
-            borderBottom: "1px solid var(--mantine-color-dark-4)",
-            flexShrink: 0,
+            borderTop: "1px solid var(--mantine-color-dark-4)",
+            background: "var(--mantine-color-dark-8)",
           }}
         >
-          <Stack gap={2}>
-            <Group gap="sm">
-              <Title order={4}>{roomTitle}</Title>
-              <ConnectionState />
-            </Group>
-            <Text size="xs" c="dimmed" lineClamp={1}>
-              {speakerLabel}
-            </Text>
-          </Stack>
-          <Group gap="xs">
-            <Badge variant="light" color="gray">
-              {connectionState}
-            </Badge>
-            <Badge
-              variant="outline"
-              color="blue"
-              leftSection={<IconVolume size={12} />}
-            >
-              {participants.length} in room
-            </Badge>
-            <Badge variant="dot" color="teal">
-              {chatMessages.length} chat messages
-            </Badge>
-            <MediaDeviceMenu kind="audioinput" />
-            <MediaDeviceMenu kind="videoinput" />
-          </Group>
-        </Group>
+          <ControlBar
+            variation="verbose"
+            controls={{
+              microphone: true,
+              camera: true,
+              screenShare: true,
 
-        <Box
-          style={{
-            flex: 1,
-            display: "flex",
-            minHeight: 0,
-            overflow: "hidden",
-          }}
-        >
-          <Stack
-            gap={0}
-            style={{
-              width: 280,
-              flexShrink: 0,
-              borderRight: "1px solid var(--mantine-color-dark-4)",
-              background: "var(--mantine-color-dark-8)",
+              leave: true,
+              settings: true,
             }}
-          >
-            <Text size="sm" fw={600} px="md" py="sm">
-              Members
-            </Text>
-            <Divider />
-            <ScrollArea flex={1} type="auto" offsetScrollbars>
-              <Stack gap={4} px="sm" py="sm">
-                <Text size="xs" c="dimmed" tt="uppercase" px={8}>
-                  You
-                </Text>
-                <Paper p="xs" radius="sm" withBorder>
-                  <Group justify="space-between" wrap="nowrap">
-                    <Text size="sm" fw={500} lineClamp={1} style={{ flex: 1 }}>
-                      {localParticipant.name || localParticipant.identity}
-                    </Text>
-                    <Badge size="xs" variant="light">
-                      You
-                    </Badge>
-                  </Group>
-                </Paper>
-                <Text size="xs" c="dimmed" tt="uppercase" px={8} pt="md">
-                  Participants
-                </Text>
-                <ParticipantLoop participants={sortedRemoteParticipants}>
-                  <ParticipantSidebarRow />
-                </ParticipantLoop>
-              </Stack>
-            </ScrollArea>
-          </Stack>
-
-          <Stack
-            gap={0}
-            style={{
-              flex: 1,
-              minWidth: 0,
-              background: "var(--mantine-color-dark-9)",
+            saveUserChoices
+            onDeviceError={({ source, error }) => {
+              notifications.show({
+                title: "Device error",
+                message: `${source}: ${error.message}`,
+                color: "red",
+              });
             }}
-          >
-            <Box style={{ flex: 1, minHeight: 0, position: "relative" }}>
-              <GridLayout tracks={tracks} style={{ height: "100%" }}>
-                <ParticipantTile />
-              </GridLayout>
-            </Box>
-            <Box
-              px="md"
-              py="sm"
-              style={{
-                borderTop: "1px solid var(--mantine-color-dark-4)",
-                background: "var(--mantine-color-dark-8)",
-              }}
-            >
-              <ControlBar
-                variation="verbose"
-                controls={{
-                  microphone: true,
-                  camera: true,
-                  screenShare: true,
-
-                  leave: true,
-                  settings: true,
-                }}
-                saveUserChoices
-                onDeviceError={({ source, error }) => {
-                  notifications.show({
-                    title: "Device error",
-                    message: `${source}: ${error.message}`,
-                    color: "red",
-                  });
-                }}
-              />
-            </Box>
-          </Stack>
-
-          <Stack
-            gap={0}
-            style={{
-              width: 340,
-              flexShrink: 0,
-              borderLeft: "1px solid var(--mantine-color-dark-4)",
-              minHeight: 0,
-            }}
-          >
-            <Group justify="space-between" px="md" py="sm">
-              <Text size="sm" fw={600}>
-                Text chat
-              </Text>
-              <RoomName style={{ fontSize: 12, opacity: 0.7 }} />
-            </Group>
-            <Divider />
-            <Box style={{ flex: 1, minHeight: 0, display: "flex" }}>
-              <Chat
-                style={{
-                  flex: 1,
-                  display: "flex",
-                  flexDirection: "column",
-                  minHeight: 0,
-                }}
-              />
-            </Box>
-            <Divider />
-            <Text size="xs" c="dimmed" px="md" py={8}>
-              Session: {room?.name ?? "—"}
-            </Text>
-          </Stack>
+          />
         </Box>
-      </Box>
+      </Stack>
+
+      {/* <Stack
+          gap={0}
+          style={{
+            width: 340,
+            flexShrink: 0,
+            borderLeft: "1px solid var(--mantine-color-dark-4)",
+            minHeight: 0,
+          }}
+        >
+          <Group justify="space-between" px="md" py="sm">
+            <Text size="sm" fw={600}>
+              Text chat
+            </Text>
+            <RoomName style={{ fontSize: 12, opacity: 0.7 }} />
+          </Group>
+          <Divider />
+          <Box style={{ flex: 1, minHeight: 0, display: "flex" }}>
+            <Chat
+              style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                minHeight: 0,
+              }}
+            />
+          </Box>
+          <Divider />
+          <Text size="xs" c="dimmed" px="md" py={8}>
+            Session: {room?.name ?? "—"}
+          </Text>
+        </Stack> */}
     </LayoutContextProvider>
   );
 };
@@ -454,10 +389,7 @@ const RoomView: React.FunctionComponent = () => {
     : false;
 
   return (
-    <Box
-      data-lk-theme="default"
-      style={{ display: "flex", flexDirection: "column" }}
-    >
+    <Flex data-lk-theme="default">
       <LiveKitRoom
         token={state.token}
         serverUrl={state.server}
@@ -475,9 +407,9 @@ const RoomView: React.FunctionComponent = () => {
           });
         }}
       >
-        <ConferenceRoomChrome displayRoomName={state.room} />
+        <ConferenceRoomChrome />
       </LiveKitRoom>
-    </Box>
+    </Flex>
   );
 };
 
