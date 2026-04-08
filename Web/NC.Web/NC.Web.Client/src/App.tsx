@@ -17,7 +17,6 @@ import "@mantine/nprogress/styles.css";
 import "@mantine/spotlight/styles.css";
 import "@mantine/tiptap/styles.css";
 import "mantine-datatable/styles.css";
-import "@livekit/components-styles";
 import "@noobz-cord/theme/theme.scss";
 
 import "@noobz-cord/dayjs";
