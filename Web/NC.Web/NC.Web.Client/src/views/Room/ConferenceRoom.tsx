@@ -1,0 +1,948 @@
+import {
+  ActionIcon,
+  AppShell,
+  Avatar,
+  Badge,
+  Box,
+  Button,
+  Center,
+  Drawer,
+  Group,
+  Loader,
+  Modal,
+  Paper,
+  ScrollArea,
+  Select,
+  Slider,
+  Stack,
+  Switch,
+  Tabs,
+  Text,
+  TextInput,
+  Tooltip,
+  rem,
+} from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
+import { useCookies } from "react-cookie";
+import {
+  IconHeadphones,
+  IconHeadphonesOff,
+  IconLogout,
+  IconMessage,
+  IconMicrophone,
+  IconMicrophoneOff,
+  IconScreenShare,
+  IconSettings,
+  IconUsers,
+  IconVideo,
+  IconVideoOff,
+} from "@tabler/icons-react";
+import {
+  ConnectionState,
+  type LocalVideoTrack,
+  type Participant,
+  type RemoteVideoTrack,
+  Track,
+} from "livekit-client";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import { RemoteAudioPlayer } from "./RemoteAudioPlayer";
+import { VideoTile } from "./VideoTile";
+import {
+  conferenceDeviceCookieOptions,
+  COOKIE_CONFERENCE_CAM_DEVICE,
+  COOKIE_CONFERENCE_MIC_DEVICE,
+} from "./conferenceRoomCookies";
+import {
+  collectRemoteAudioTracks,
+  defaultAudioPref,
+  useLiveKitConference,
+} from "./useLiveKitConference";
+
+import classes from "./index.module.scss";
+
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function sortParticipants(roomParticipants: Participant[]): Participant[] {
+  return [...roomParticipants].sort((a, b) => {
+    if (a.isLocal !== b.isLocal) return a.isLocal ? -1 : 1;
+    return (a.name || a.identity).localeCompare(b.name || b.identity);
+  });
+}
+
+const ParticipantGrid: React.FunctionComponent<{
+  participants: Participant[];
+}> = ({ participants }) => (
+  <div className={classes.videoGrid}>
+    {participants.map((p) => {
+      const name = p.name || p.identity;
+      const camPub = p.getTrackPublication(Track.Source.Camera);
+      const track = camPub?.track;
+      const showCamera =
+        p.isCameraEnabled &&
+        track &&
+        track.kind === Track.Kind.Video &&
+        !(camPub?.isMuted ?? false);
+      if (showCamera) {
+        return (
+          <VideoTile
+            key={p.identity}
+            track={track as LocalVideoTrack | RemoteVideoTrack}
+            label={name}
+            mirror={p.isLocal}
+            subLabel={p.isMicrophoneEnabled ? undefined : "Mic off"}
+          />
+        );
+      }
+      return (
+        <Paper
+          key={p.identity}
+          className={classes.placeholderTile}
+          p="md"
+          radius="md"
+        >
+          <Avatar size={72} radius="md" color="indigo">
+            {initials(name)}
+          </Avatar>
+          <Group gap={6}>
+            <Text size="sm" fw={600}>
+              {name}
+            </Text>
+            {p.isLocal ? (
+              <Badge size="xs" variant="outline">
+                You
+              </Badge>
+            ) : null}
+          </Group>
+          <Group gap="xs">
+            <Tooltip label={p.isMicrophoneEnabled ? "Mic on" : "Mic off"}>
+              {p.isMicrophoneEnabled ? (
+                <IconMicrophone size={18} />
+              ) : (
+                <IconMicrophoneOff size={18} />
+              )}
+            </Tooltip>
+            <Tooltip label={p.isCameraEnabled ? "Camera on" : "Camera off"}>
+              {p.isCameraEnabled ? (
+                <IconVideo size={18} />
+              ) : (
+                <IconVideoOff size={18} />
+              )}
+            </Tooltip>
+          </Group>
+        </Paper>
+      );
+    })}
+  </div>
+);
+
+const ConferenceRoom: React.FunctionComponent = () => {
+  const {
+    room,
+    roomLabel,
+    connecting,
+    error,
+    tick,
+    connect,
+    disconnect,
+    sendChat,
+    chatMessages,
+    deafened,
+    setDeafened,
+    audioPrefs,
+    setParticipantPref,
+    toggleMic,
+    toggleCamera,
+    toggleScreenShare,
+    switchMic,
+    switchCamera,
+  } = useLiveKitConference();
+
+  const [cookies, setCookie] = useCookies([
+    COOKIE_CONFERENCE_MIC_DEVICE,
+    COOKIE_CONFERENCE_CAM_DEVICE,
+  ]);
+
+  const [sideOpen, { open: openSide, close: closeSide }] = useDisclosure(false);
+  const [sideTab, setSideTab] = useState<"participants" | "chat">(
+    "participants",
+  );
+  const [chatDraft, setChatDraft] = useState("");
+  const [settingsOpen, { open: openSettings, close: closeSettings }] =
+    useDisclosure(false);
+  const [devices, setDevices] = useState<{
+    mics: MediaDeviceInfo[];
+    cams: MediaDeviceInfo[];
+  }>({ mics: [], cams: [] });
+  const [selectedMic, setSelectedMic] = useState<string | null>(null);
+  const [selectedCam, setSelectedCam] = useState<string | null>(null);
+  const [devicesReady, setDevicesReady] = useState(false);
+  const [micOn, setMicOn] = useState(true);
+  const [camOn, setCamOn] = useState(true);
+  const previewVideoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (room) return;
+    let cancelled = false;
+    let permissionStream: MediaStream | null = null;
+    void (async () => {
+      try {
+        permissionStream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+          video: true,
+        });
+      } catch {
+        /* permission denied or no hardware */
+      }
+      if (cancelled) return;
+      const all = await navigator.mediaDevices.enumerateDevices();
+      const mics = all.filter((d) => d.kind === "audioinput");
+      const cams = all.filter((d) => d.kind === "videoinput");
+      setDevices({ mics, cams });
+      const micCookie = cookies[COOKIE_CONFERENCE_MIC_DEVICE] as
+        | string
+        | undefined;
+      const camCookie = cookies[COOKIE_CONFERENCE_CAM_DEVICE] as
+        | string
+        | undefined;
+      const micId = mics.some((d) => d.deviceId === micCookie)
+        ? micCookie!
+        : (mics[0]?.deviceId ?? null);
+      const camId = cams.some((d) => d.deviceId === camCookie)
+        ? camCookie!
+        : (cams[0]?.deviceId ?? null);
+      setSelectedMic(micId);
+      setSelectedCam(camId);
+      setDevicesReady(true);
+      permissionStream?.getTracks().forEach((t) => t.stop());
+    })();
+    return () => {
+      cancelled = true;
+      permissionStream?.getTracks().forEach((t) => t.stop());
+    };
+  }, [
+    room,
+    cookies[COOKIE_CONFERENCE_MIC_DEVICE],
+    cookies[COOKIE_CONFERENCE_CAM_DEVICE],
+  ]);
+
+  useEffect(() => {
+    if (room) return;
+    if (!devicesReady || !camOn || !selectedCam) {
+      if (previewVideoRef.current) previewVideoRef.current.srcObject = null;
+      return;
+    }
+    let stream: MediaStream | null = null;
+    void navigator.mediaDevices
+      .getUserMedia({
+        video: { deviceId: { exact: selectedCam } },
+        audio: false,
+      })
+      .then((s) => {
+        stream = s;
+        if (previewVideoRef.current) previewVideoRef.current.srcObject = s;
+      })
+      .catch(() => {
+        if (previewVideoRef.current) previewVideoRef.current.srcObject = null;
+      });
+    return () => {
+      stream?.getTracks().forEach((t) => t.stop());
+    };
+  }, [room, devicesReady, camOn, selectedCam]);
+
+  useEffect(() => {
+    if (!settingsOpen || !room) return;
+    void navigator.mediaDevices.enumerateDevices().then((all) => {
+      setDevices({
+        mics: all.filter((d) => d.kind === "audioinput"),
+        cams: all.filter((d) => d.kind === "videoinput"),
+      });
+      const m = room.getActiveDevice("audioinput");
+      const v = room.getActiveDevice("videoinput");
+      if (m) setSelectedMic(m);
+      if (v) setSelectedCam(v);
+    });
+  }, [settingsOpen, room]);
+
+  const participants = useMemo(() => {
+    if (!room) return [];
+    return sortParticipants([
+      room.localParticipant,
+      ...Array.from(room.remoteParticipants.values()),
+    ]);
+  }, [room, tick]);
+
+  const screenShares = useMemo(() => {
+    if (!room) return [];
+    const out: {
+      participant: Participant;
+      track: LocalVideoTrack | RemoteVideoTrack;
+    }[] = [];
+    for (const p of participants) {
+      const pub = p.getTrackPublication(Track.Source.ScreenShare);
+      if (pub?.track && pub.track.kind === Track.Kind.Video) {
+        out.push({
+          participant: p,
+          track: pub.track as LocalVideoTrack | RemoteVideoTrack,
+        });
+      }
+    }
+    return out;
+  }, [room, participants, tick]);
+
+  const [mainTab, setMainTab] = useState("gallery");
+
+  useEffect(() => {
+    if (screenShares.length === 0) {
+      setMainTab("gallery");
+      return;
+    }
+    if (mainTab.startsWith("ss-")) {
+      const suffix = mainTab.slice(3);
+      const stillThere = screenShares.some(
+        (s) => s.participant.identity === suffix,
+      );
+      if (!stillThere) setMainTab("gallery");
+    }
+  }, [screenShares, mainTab]);
+
+  const openParticipants = useCallback(() => {
+    setSideTab("participants");
+    openSide();
+  }, [openSide]);
+
+  const openChat = useCallback(() => {
+    setSideTab("chat");
+    openSide();
+  }, [openSide]);
+
+  const prefFor = useCallback(
+    (identity: string) => ({
+      ...defaultAudioPref(),
+      ...audioPrefs[identity],
+    }),
+    [audioPrefs],
+  );
+
+  const onApplyDevices = useCallback(async () => {
+    if (!room) return;
+    const prevMic = room.getActiveDevice("audioinput");
+    const prevCam = room.getActiveDevice("videoinput");
+    if (selectedMic && selectedMic !== prevMic) {
+      await switchMic(selectedMic);
+      setCookie(
+        COOKIE_CONFERENCE_MIC_DEVICE,
+        selectedMic,
+        conferenceDeviceCookieOptions,
+      );
+    }
+    if (selectedCam && selectedCam !== prevCam) {
+      await switchCamera(selectedCam);
+      setCookie(
+        COOKIE_CONFERENCE_CAM_DEVICE,
+        selectedCam,
+        conferenceDeviceCookieOptions,
+      );
+    }
+    closeSettings();
+  }, [
+    room,
+    selectedMic,
+    selectedCam,
+    switchMic,
+    switchCamera,
+    setCookie,
+    closeSettings,
+  ]);
+
+  const sendChatMessage = useCallback(() => {
+    sendChat(chatDraft);
+    setChatDraft("");
+  }, [chatDraft, sendChat]);
+
+  const connLabel =
+    room?.state === ConnectionState.Connected
+      ? "Connected"
+      : room?.state === ConnectionState.Connecting
+        ? "Connecting"
+        : room?.state === ConnectionState.Reconnecting
+          ? "Reconnecting"
+          : (room?.state ?? "");
+
+  if (!room) {
+    const canJoin =
+      devicesReady && !(micOn && !selectedMic) && !(camOn && !selectedCam);
+
+    return (
+      <Box className={classes.root}>
+        <Center className={classes.joinWrap}>
+          <Paper className={classes.joinCard} p="xl" radius="md" withBorder>
+            <Stack gap="md">
+              <div>
+                <Text size="xl" fw={700}>
+                  Video meeting
+                </Text>
+                <Text size="sm" c="dimmed">
+                  Choose your microphone and camera, set whether they start on
+                  or off, then join. Device choices are remembered for next
+                  time.
+                </Text>
+              </div>
+
+              {!devicesReady ? (
+                <Group justify="center" py="lg">
+                  <Loader size="sm" />
+                  <Text size="sm" c="dimmed">
+                    Loading devices…
+                  </Text>
+                </Group>
+              ) : (
+                <>
+                  <Select
+                    label="Microphone"
+                    placeholder="Select microphone"
+                    data={devices.mics.map((d) => ({
+                      value: d.deviceId,
+                      label: d.label || `Microphone ${d.deviceId.slice(0, 8)}…`,
+                    }))}
+                    value={selectedMic}
+                    onChange={setSelectedMic}
+                    searchable
+                  />
+                  <Switch
+                    label="Microphone on when joining"
+                    checked={micOn}
+                    onChange={(e) => setMicOn(e.currentTarget.checked)}
+                  />
+
+                  <Select
+                    label="Camera"
+                    placeholder="Select camera"
+                    data={devices.cams.map((d) => ({
+                      value: d.deviceId,
+                      label: d.label || `Camera ${d.deviceId.slice(0, 8)}…`,
+                    }))}
+                    value={selectedCam}
+                    onChange={setSelectedCam}
+                    searchable
+                  />
+                  <Switch
+                    label="Camera on when joining"
+                    checked={camOn}
+                    onChange={(e) => setCamOn(e.currentTarget.checked)}
+                  />
+
+                  <div className={classes.prejoinPreview}>
+                    {camOn && selectedCam ? (
+                      <video ref={previewVideoRef} playsInline muted autoPlay />
+                    ) : (
+                      <Center style={{ height: "100%", minHeight: rem(160) }}>
+                        <Text size="sm" c="dimmed" ta="center" px="md">
+                          Camera preview appears when camera is on and a device
+                          is selected.
+                        </Text>
+                      </Center>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {error ? (
+                <Text size="sm" c="red">
+                  {error}
+                </Text>
+              ) : null}
+              <Button
+                fullWidth
+                size="md"
+                disabled={!canJoin}
+                onClick={() =>
+                  void (async () => {
+                    try {
+                      await connect({
+                        micDeviceId: selectedMic ?? undefined,
+                        camDeviceId: selectedCam ?? undefined,
+                        micEnabled: micOn,
+                        camEnabled: camOn,
+                      });
+                      if (selectedMic) {
+                        setCookie(
+                          COOKIE_CONFERENCE_MIC_DEVICE,
+                          selectedMic,
+                          conferenceDeviceCookieOptions,
+                        );
+                      }
+                      if (selectedCam) {
+                        setCookie(
+                          COOKIE_CONFERENCE_CAM_DEVICE,
+                          selectedCam,
+                          conferenceDeviceCookieOptions,
+                        );
+                      }
+                    } catch {
+                      /* error state from hook */
+                    }
+                  })()
+                }
+                loading={connecting}
+              >
+                Join meeting
+              </Button>
+            </Stack>
+          </Paper>
+        </Center>
+      </Box>
+    );
+  }
+
+  const remoteAudios = collectRemoteAudioTracks(room);
+
+  return (
+    <>
+      {remoteAudios.map(({ key, track, participantIdentity }) => {
+        const pref = prefFor(participantIdentity);
+        const vol = deafened || pref.mutedForSelf ? 0 : pref.volume;
+        return <RemoteAudioPlayer key={key} track={track} volume={vol} />;
+      })}
+
+      <AppShell
+        className={classes.shellRoot}
+        padding={0}
+        header={{ height: 56 }}
+        footer={{ height: { base: 120, sm: 88 } }}
+      >
+        <AppShell.Header className={classes.header}>
+          <Group
+            justify="space-between"
+            wrap="nowrap"
+            style={{ width: "100%" }}
+          >
+            <Group gap="sm">
+              <Text fw={600}>{roomLabel ?? "Meeting"}</Text>
+              <Badge variant="light" color="gray" size="sm">
+                {connLabel}
+              </Badge>
+            </Group>
+            <Text size="xs" c="dimmed">
+              {participants.length} in call
+            </Text>
+          </Group>
+        </AppShell.Header>
+
+        <AppShell.Main className={classes.main}>
+          {screenShares.length === 0 ? (
+            <ParticipantGrid participants={participants} />
+          ) : (
+            <Tabs
+              value={mainTab}
+              onChange={(v) => v && setMainTab(v)}
+              classNames={{
+                root: classes.mainTabs,
+                list: classes.mainTabsList,
+              }}
+              keepMounted={false}
+              p={0}
+              flex={1}
+              style={{ minHeight: 0 }}
+            >
+              <Tabs.List>
+                <Tabs.Tab value="gallery">Meeting</Tabs.Tab>
+                {screenShares.map(({ participant }) => (
+                  <Tabs.Tab
+                    key={`ss-tab-${participant.identity}`}
+                    value={`ss-${participant.identity}`}
+                  >
+                    {(participant.name || participant.identity).length > 28
+                      ? `${(participant.name || participant.identity).slice(0, 26)}…`
+                      : participant.name || participant.identity}{" "}
+                    — Screen
+                  </Tabs.Tab>
+                ))}
+              </Tabs.List>
+
+              <Tabs.Panel
+                value="gallery"
+                className={`${classes.mainTabsPanel} ${classes.galleryTabPanel}`}
+              >
+                <ParticipantGrid participants={participants} />
+              </Tabs.Panel>
+
+              {screenShares.map(({ participant, track }) => (
+                <Tabs.Panel
+                  key={`ss-panel-${participant.identity}`}
+                  value={`ss-${participant.identity}`}
+                  className={`${classes.mainTabsPanel} ${classes.screenShareTabPanel}`}
+                >
+                  <VideoTile
+                    variant="fill"
+                    objectFit="contain"
+                    track={track}
+                    label={participant.name || participant.identity}
+                    subLabel="Screen share"
+                  />
+                </Tabs.Panel>
+              ))}
+            </Tabs>
+          )}
+        </AppShell.Main>
+
+        <AppShell.Footer className={classes.controlBar}>
+          <Group justify="center" wrap="wrap" gap="xs">
+            <Tooltip
+              label={
+                room.localParticipant.isMicrophoneEnabled ? "Mute" : "Unmute"
+              }
+            >
+              <ActionIcon
+                size={52}
+                radius="xl"
+                variant={
+                  room.localParticipant.isMicrophoneEnabled ? "filled" : "light"
+                }
+                color={
+                  room.localParticipant.isMicrophoneEnabled ? "dark" : "red"
+                }
+                onClick={() => void toggleMic()}
+              >
+                {room.localParticipant.isMicrophoneEnabled ? (
+                  <IconMicrophone size={22} />
+                ) : (
+                  <IconMicrophoneOff size={22} />
+                )}
+              </ActionIcon>
+            </Tooltip>
+
+            <Tooltip
+              label={
+                room.localParticipant.isCameraEnabled
+                  ? "Stop video"
+                  : "Start video"
+              }
+            >
+              <ActionIcon
+                size={52}
+                radius="xl"
+                variant={
+                  room.localParticipant.isCameraEnabled ? "filled" : "light"
+                }
+                color={room.localParticipant.isCameraEnabled ? "dark" : "red"}
+                onClick={() => void toggleCamera()}
+              >
+                {room.localParticipant.isCameraEnabled ? (
+                  <IconVideo size={22} />
+                ) : (
+                  <IconVideoOff size={22} />
+                )}
+              </ActionIcon>
+            </Tooltip>
+
+            <Tooltip
+              label={
+                deafened ? "Undeafen (hear others)" : "Deafen (hear no one)"
+              }
+            >
+              <ActionIcon
+                size={52}
+                radius="xl"
+                variant={deafened ? "filled" : "light"}
+                color={deafened ? "orange" : "dark"}
+                onClick={() => setDeafened((d) => !d)}
+              >
+                {deafened ? (
+                  <IconHeadphonesOff size={22} />
+                ) : (
+                  <IconHeadphones size={22} />
+                )}
+              </ActionIcon>
+            </Tooltip>
+
+            <Tooltip
+              label={
+                room.localParticipant.isScreenShareEnabled
+                  ? "Stop share"
+                  : "Share screen"
+              }
+            >
+              <ActionIcon
+                size={52}
+                radius="xl"
+                variant={
+                  room.localParticipant.isScreenShareEnabled
+                    ? "filled"
+                    : "light"
+                }
+                color={
+                  room.localParticipant.isScreenShareEnabled ? "teal" : "dark"
+                }
+                onClick={() => void toggleScreenShare()}
+              >
+                <IconScreenShare size={22} />
+              </ActionIcon>
+            </Tooltip>
+
+            <div className={classes.controlDivider} />
+
+            <Tooltip label="Participants">
+              <ActionIcon
+                size={52}
+                radius="xl"
+                variant="light"
+                onClick={openParticipants}
+              >
+                <IconUsers size={22} />
+              </ActionIcon>
+            </Tooltip>
+
+            <Tooltip label="Chat">
+              <ActionIcon
+                size={52}
+                radius="xl"
+                variant="light"
+                onClick={openChat}
+              >
+                <IconMessage size={22} />
+              </ActionIcon>
+            </Tooltip>
+
+            <Tooltip label="Microphone & camera">
+              <ActionIcon
+                size={52}
+                radius="xl"
+                variant="light"
+                onClick={openSettings}
+              >
+                <IconSettings size={22} />
+              </ActionIcon>
+            </Tooltip>
+
+            <div className={classes.controlDivider} />
+
+            <Tooltip label="Leave">
+              <ActionIcon
+                className={classes.leaveBtn}
+                size={52}
+                radius="xl"
+                variant="filled"
+                color="red"
+                onClick={() => disconnect()}
+              >
+                <IconLogout size={22} />
+              </ActionIcon>
+            </Tooltip>
+          </Group>
+        </AppShell.Footer>
+      </AppShell>
+
+      <Drawer
+        opened={sideOpen}
+        onClose={closeSide}
+        position="right"
+        size="md"
+        radius="md"
+        offset={16}
+        title="Meeting panel"
+        styles={{
+          body: {
+            padding: 0,
+            display: "flex",
+            flexDirection: "column",
+            height: "100%",
+          },
+        }}
+      >
+        <Tabs
+          value={sideTab}
+          onChange={(v) => v && setSideTab(v as "participants" | "chat")}
+          keepMounted={false}
+          className={classes.drawerBody}
+        >
+          <Tabs.List grow>
+            <Tabs.Tab value="participants">Participants</Tabs.Tab>
+            <Tabs.Tab value="chat">Chat</Tabs.Tab>
+          </Tabs.List>
+
+          <Tabs.Panel
+            value="participants"
+            p="md"
+            pt="sm"
+            style={{ flex: 1, minHeight: 0 }}
+          >
+            <ScrollArea h="calc(100vh - 140px)" type="never">
+              <Stack gap={0}>
+                {participants.map((p) => {
+                  const name = p.name || p.identity;
+                  const isLocal = p.isLocal;
+                  const pref = prefFor(p.identity);
+                  return (
+                    <Stack
+                      key={p.identity}
+                      gap="xs"
+                      className={classes.participantRow}
+                    >
+                      <Group justify="space-between" wrap="nowrap">
+                        <Group gap="sm">
+                          <Avatar radius="md" size="sm" color="violet">
+                            {initials(name)}
+                          </Avatar>
+                          <div>
+                            <Text size="sm" fw={600}>
+                              {name}
+                              {isLocal ? " (you)" : ""}
+                            </Text>
+                            <Group gap={6}>
+                              {p.isMicrophoneEnabled ? (
+                                <IconMicrophone size={14} />
+                              ) : (
+                                <IconMicrophoneOff size={14} />
+                              )}
+                              {p.isCameraEnabled ? (
+                                <IconVideo size={14} />
+                              ) : (
+                                <IconVideoOff size={14} />
+                              )}
+                            </Group>
+                          </div>
+                        </Group>
+                      </Group>
+                      {!isLocal ? (
+                        <>
+                          <Switch
+                            label="Mute for me"
+                            checked={pref.mutedForSelf}
+                            onChange={(e) =>
+                              setParticipantPref(p.identity, {
+                                mutedForSelf: e.currentTarget.checked,
+                              })
+                            }
+                          />
+                          <Stack gap={4}>
+                            <Text size="xs" c="dimmed">
+                              Volume for me
+                            </Text>
+                            <Slider
+                              min={0}
+                              max={100}
+                              value={Math.round(pref.volume * 100)}
+                              onChange={(v) =>
+                                setParticipantPref(p.identity, {
+                                  volume: v / 100,
+                                })
+                              }
+                              disabled={pref.mutedForSelf || deafened}
+                            />
+                          </Stack>
+                        </>
+                      ) : (
+                        <Text size="xs" c="dimmed">
+                          Use the toolbar to change your mic, camera, or
+                          devices.
+                        </Text>
+                      )}
+                    </Stack>
+                  );
+                })}
+              </Stack>
+            </ScrollArea>
+          </Tabs.Panel>
+
+          <Tabs.Panel
+            value="chat"
+            p="md"
+            pt="sm"
+            style={{ flex: 1, minHeight: 0 }}
+          >
+            <Stack gap="sm" className={classes.drawerBody}>
+              <ScrollArea
+                className={classes.chatScroll}
+                type="never"
+                flex={1}
+                miw={0}
+              >
+                {chatMessages.length === 0 ? (
+                  <Text size="sm" c="dimmed">
+                    No messages yet. Say hello.
+                  </Text>
+                ) : (
+                  chatMessages.map((m) => (
+                    <div key={m.id} className={classes.chatRow}>
+                      <div className={classes.chatMeta}>
+                        {m.senderName} ·{" "}
+                        {new Date(m.sentAt).toLocaleTimeString()}
+                      </div>
+                      <Text size="sm">{m.text}</Text>
+                    </div>
+                  ))
+                )}
+              </ScrollArea>
+              <Group wrap="nowrap" align="flex-end">
+                <TextInput
+                  style={{ flex: 1 }}
+                  placeholder="Type a message"
+                  value={chatDraft}
+                  onChange={(e) => setChatDraft(e.currentTarget.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      sendChatMessage();
+                    }
+                  }}
+                />
+                <Button onClick={sendChatMessage}>Send</Button>
+              </Group>
+            </Stack>
+          </Tabs.Panel>
+        </Tabs>
+      </Drawer>
+
+      <Modal
+        opened={settingsOpen}
+        onClose={closeSettings}
+        title="Audio & video devices"
+        centered
+      >
+        <Stack gap="md">
+          <Select
+            label="Microphone"
+            placeholder="Choose microphone"
+            data={devices.mics.map((d) => ({
+              value: d.deviceId,
+              label: d.label || `Mic ${d.deviceId.slice(0, 8)}`,
+            }))}
+            value={selectedMic}
+            onChange={setSelectedMic}
+            searchable
+          />
+          <Select
+            label="Camera"
+            placeholder="Choose camera"
+            data={devices.cams.map((d) => ({
+              value: d.deviceId,
+              label: d.label || `Camera ${d.deviceId.slice(0, 8)}`,
+            }))}
+            value={selectedCam}
+            onChange={setSelectedCam}
+            searchable
+          />
+          <Group justify="flex-end">
+            <Button variant="default" onClick={closeSettings}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => void onApplyDevices()}
+              disabled={!selectedMic && !selectedCam}
+            >
+              Apply
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
+    </>
+  );
+};
+
+export default ConferenceRoom;

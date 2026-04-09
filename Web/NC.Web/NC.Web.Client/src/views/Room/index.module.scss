@@ -1,0 +1,257 @@
+.root {
+  height: 100vh;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #121214;
+  color: #f4f4f5;
+}
+
+.shellRoot {
+  height: 100vh;
+  min-height: 0;
+  background: #121214;
+  color: #f4f4f5;
+}
+
+@mixin hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+}
+
+.joinWrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: rem(24);
+}
+
+.joinCard {
+  max-width: rem(480);
+  width: 100%;
+}
+
+.prejoinPreview {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: rem(8);
+  overflow: hidden;
+  background: #0a0a0c;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  video {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    transform: scaleX(-1);
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding-inline: rem(16);
+  background: #1c1c1f;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.main {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.mainTabs {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mainTabsList {
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-inline: rem(8);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: #141416;
+
+  @include hide-scrollbar;
+}
+
+.mainTabsPanel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.galleryTabPanel {
+  padding: rem(8);
+  overflow: auto;
+  min-height: 0;
+
+  @include hide-scrollbar;
+}
+
+.screenShareTabPanel {
+  padding: rem(8);
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+
+  @include hide-scrollbar;
+}
+
+.videoGrid {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(rem(260), 1fr));
+  gap: rem(8);
+  padding: rem(8);
+  align-content: start;
+
+  @include hide-scrollbar;
+}
+
+.videoTile {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  border-radius: rem(8);
+  overflow: hidden;
+  background: #1f1f24;
+}
+
+.videoTileFill {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  border-radius: rem(8);
+  overflow: hidden;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+}
+
+.videoEl {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.videoElFill {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: block;
+  background: #000;
+}
+
+.videoOverlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: rem(8) rem(10);
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.75));
+  display: flex;
+  flex-direction: column;
+  gap: rem(2);
+}
+
+.videoLabel {
+  font-size: rem(13);
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.videoSubLabel {
+  font-size: rem(11);
+  opacity: 0.85;
+}
+
+.placeholderTile {
+  aspect-ratio: 16 / 10;
+  border-radius: rem(8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: rem(8);
+  background: linear-gradient(145deg, #25252c, #1a1a20);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.controlBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: rem(4);
+  width: 100%;
+  padding: rem(12) rem(16);
+  background: #1c1c1f;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.controlDivider {
+  width: 1px;
+  height: rem(32);
+  background: rgba(255, 255, 255, 0.1);
+  margin: 0 rem(8);
+}
+
+.leaveBtn {
+  background: #e6483d !important;
+  &:hover {
+    background: #c73a32 !important;
+  }
+}
+
+.drawerBody {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.chatScroll {
+  flex: 1;
+  min-height: 0;
+}
+
+.chatRow {
+  padding: rem(6) 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.chatMeta {
+  font-size: rem(11);
+  opacity: 0.65;
+  margin-bottom: rem(2);
+}
+
+.participantRow {
+  padding: rem(10) 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
