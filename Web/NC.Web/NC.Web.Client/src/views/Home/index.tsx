@@ -11,6 +11,7 @@ import {
   Loader,
   Modal,
   Paper,
+  rem,
   ScrollArea,
   Select,
   Slider,
@@ -20,10 +21,8 @@ import {
   Text,
   TextInput,
   Tooltip,
-  rem,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { useCookies } from "react-cookie";
 import {
   IconHeadphones,
   IconHeadphonesOff,
@@ -45,103 +44,26 @@ import {
   Track,
 } from "livekit-client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCookies } from "react-cookie";
 
-import { RemoteAudioPlayer } from "./RemoteAudioPlayer";
-import { VideoTile } from "./VideoTile";
 import {
   conferenceDeviceCookieOptions,
   COOKIE_CONFERENCE_CAM_DEVICE,
   COOKIE_CONFERENCE_MIC_DEVICE,
 } from "./conferenceRoomCookies";
+import { RemoteAudioPlayer } from "./RemoteAudioPlayer";
 import {
   collectRemoteAudioTracks,
   defaultAudioPref,
   useLiveKitConference,
 } from "./useLiveKitConference";
+import { VideoTile } from "./VideoTile";
+import { ParticipantGrid } from "./ParticipantGrid";
+import { initials, sortParticipants, tileStatusFor } from "./utils";
 
 import classes from "./index.module.scss";
 
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
-
-function sortParticipants(roomParticipants: Participant[]): Participant[] {
-  return [...roomParticipants].sort((a, b) => {
-    if (a.isLocal !== b.isLocal) return a.isLocal ? -1 : 1;
-    return (a.name || a.identity).localeCompare(b.name || b.identity);
-  });
-}
-
-const ParticipantGrid: React.FunctionComponent<{
-  participants: Participant[];
-}> = ({ participants }) => (
-  <div className={classes.videoGrid}>
-    {participants.map((p) => {
-      const name = p.name || p.identity;
-      const camPub = p.getTrackPublication(Track.Source.Camera);
-      const track = camPub?.track;
-      const showCamera =
-        p.isCameraEnabled &&
-        track &&
-        track.kind === Track.Kind.Video &&
-        !(camPub?.isMuted ?? false);
-      if (showCamera) {
-        return (
-          <VideoTile
-            key={p.identity}
-            track={track as LocalVideoTrack | RemoteVideoTrack}
-            label={name}
-            mirror={p.isLocal}
-            subLabel={p.isMicrophoneEnabled ? undefined : "Mic off"}
-          />
-        );
-      }
-      return (
-        <Paper
-          key={p.identity}
-          className={classes.placeholderTile}
-          p="md"
-          radius="md"
-        >
-          <Avatar size={72} radius="md" color="indigo">
-            {initials(name)}
-          </Avatar>
-          <Group gap={6}>
-            <Text size="sm" fw={600}>
-              {name}
-            </Text>
-            {p.isLocal ? (
-              <Badge size="xs" variant="outline">
-                You
-              </Badge>
-            ) : null}
-          </Group>
-          <Group gap="xs">
-            <Tooltip label={p.isMicrophoneEnabled ? "Mic on" : "Mic off"}>
-              {p.isMicrophoneEnabled ? (
-                <IconMicrophone size={18} />
-              ) : (
-                <IconMicrophoneOff size={18} />
-              )}
-            </Tooltip>
-            <Tooltip label={p.isCameraEnabled ? "Camera on" : "Camera off"}>
-              {p.isCameraEnabled ? (
-                <IconVideo size={18} />
-              ) : (
-                <IconVideoOff size={18} />
-              )}
-            </Tooltip>
-          </Group>
-        </Paper>
-      );
-    })}
-  </div>
-);
-
-const ConferenceRoom: React.FunctionComponent = () => {
+const HomeView: React.FunctionComponent = () => {
   const {
     room,
     roomLabel,
@@ -167,6 +89,12 @@ const ConferenceRoom: React.FunctionComponent = () => {
     COOKIE_CONFERENCE_MIC_DEVICE,
     COOKIE_CONFERENCE_CAM_DEVICE,
   ]);
+  const conferenceMicCookie = cookies[COOKIE_CONFERENCE_MIC_DEVICE] as
+    | string
+    | undefined;
+  const conferenceCamCookie = cookies[COOKIE_CONFERENCE_CAM_DEVICE] as
+    | string
+    | undefined;
 
   const [sideOpen, { open: openSide, close: closeSide }] = useDisclosure(false);
   const [sideTab, setSideTab] = useState<"participants" | "chat">(
@@ -204,17 +132,11 @@ const ConferenceRoom: React.FunctionComponent = () => {
       const mics = all.filter((d) => d.kind === "audioinput");
       const cams = all.filter((d) => d.kind === "videoinput");
       setDevices({ mics, cams });
-      const micCookie = cookies[COOKIE_CONFERENCE_MIC_DEVICE] as
-        | string
-        | undefined;
-      const camCookie = cookies[COOKIE_CONFERENCE_CAM_DEVICE] as
-        | string
-        | undefined;
-      const micId = mics.some((d) => d.deviceId === micCookie)
-        ? micCookie!
+      const micId = mics.some((d) => d.deviceId === conferenceMicCookie)
+        ? conferenceMicCookie!
         : (mics[0]?.deviceId ?? null);
-      const camId = cams.some((d) => d.deviceId === camCookie)
-        ? camCookie!
+      const camId = cams.some((d) => d.deviceId === conferenceCamCookie)
+        ? conferenceCamCookie!
         : (cams[0]?.deviceId ?? null);
       setSelectedMic(micId);
       setSelectedCam(camId);
@@ -225,11 +147,7 @@ const ConferenceRoom: React.FunctionComponent = () => {
       cancelled = true;
       permissionStream?.getTracks().forEach((t) => t.stop());
     };
-  }, [
-    room,
-    cookies[COOKIE_CONFERENCE_MIC_DEVICE],
-    cookies[COOKIE_CONFERENCE_CAM_DEVICE],
-  ]);
+  }, [room, conferenceMicCookie, conferenceCamCookie]);
 
   useEffect(() => {
     if (room) return;
@@ -269,13 +187,18 @@ const ConferenceRoom: React.FunctionComponent = () => {
     });
   }, [settingsOpen, room]);
 
-  const participants = useMemo(() => {
-    if (!room) return [];
-    return sortParticipants([
-      room.localParticipant,
-      ...Array.from(room.remoteParticipants.values()),
-    ]);
-  }, [room, tick]);
+  const participants = useMemo(
+    () => {
+      if (!room) return [];
+      return sortParticipants([
+        room.localParticipant,
+        ...Array.from(room.remoteParticipants.values()),
+      ]);
+    },
+    // `room` is stable across participant/track updates; `tick` bumps on room events.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- need tick for mute/camera updates
+    [room, tick],
+  );
 
   const screenShares = useMemo(() => {
     if (!room) return [];
@@ -293,22 +216,20 @@ const ConferenceRoom: React.FunctionComponent = () => {
       }
     }
     return out;
-  }, [room, participants, tick]);
+  }, [room, participants]);
 
   const [mainTab, setMainTab] = useState("gallery");
 
-  useEffect(() => {
-    if (screenShares.length === 0) {
-      setMainTab("gallery");
-      return;
-    }
+  const resolvedMainTab = useMemo(() => {
+    if (screenShares.length === 0) return "gallery";
     if (mainTab.startsWith("ss-")) {
       const suffix = mainTab.slice(3);
       const stillThere = screenShares.some(
         (s) => s.participant.identity === suffix,
       );
-      if (!stillThere) setMainTab("gallery");
+      if (!stillThere) return "gallery";
     }
+    return mainTab;
   }, [screenShares, mainTab]);
 
   const openParticipants = useCallback(() => {
@@ -536,10 +457,13 @@ const ConferenceRoom: React.FunctionComponent = () => {
 
         <AppShell.Main className={classes.main}>
           {screenShares.length === 0 ? (
-            <ParticipantGrid participants={participants} />
+            <ParticipantGrid
+              participants={participants}
+              localDeafened={deafened}
+            />
           ) : (
             <Tabs
-              value={mainTab}
+              value={resolvedMainTab}
               onChange={(v) => v && setMainTab(v)}
               classNames={{
                 root: classes.mainTabs,
@@ -569,7 +493,10 @@ const ConferenceRoom: React.FunctionComponent = () => {
                 value="gallery"
                 className={`${classes.mainTabsPanel} ${classes.galleryTabPanel}`}
               >
-                <ParticipantGrid participants={participants} />
+                <ParticipantGrid
+                  participants={participants}
+                  localDeafened={deafened}
+                />
               </Tabs.Panel>
 
               {screenShares.map(({ participant, track }) => (
@@ -584,6 +511,7 @@ const ConferenceRoom: React.FunctionComponent = () => {
                     track={track}
                     label={participant.name || participant.identity}
                     subLabel="Screen share"
+                    status={tileStatusFor(participant, deafened)}
                   />
                 </Tabs.Panel>
               ))}
@@ -945,4 +873,4 @@ const ConferenceRoom: React.FunctionComponent = () => {
   );
 };
 
-export default ConferenceRoom;
+export default HomeView;

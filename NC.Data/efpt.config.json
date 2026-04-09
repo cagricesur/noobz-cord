@@ -3,7 +3,7 @@
    "ContextClassName": "NoobzCordContext",
    "ContextNamespace": null,
    "FilterSchemas": false,
-   "IncludeConnectionString": false,
+   "IncludeConnectionString": true,
    "IrregularWords": null,
    "MinimumProductVersion": "2.6.1301",
    "ModelNamespace": null,

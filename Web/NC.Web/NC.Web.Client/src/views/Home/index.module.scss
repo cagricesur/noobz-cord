@@ -133,11 +133,19 @@
 }
 
 .videoTile {
-  position: relative;
-  aspect-ratio: 16 / 10;
+  display: flex;
+  flex-direction: column;
   border-radius: rem(8);
   overflow: hidden;
   background: #1f1f24;
+}
+
+.videoTileMedia {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  aspect-ratio: 16 / 10;
 }
 
 .videoTileFill {
@@ -148,6 +156,15 @@
   border-radius: rem(8);
   overflow: hidden;
   background: #000;
+  display: flex;
+  flex-direction: column;
+}
+
+.videoTileMediaFill {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
   display: flex;
   flex-direction: column;
 }
@@ -190,16 +207,56 @@
   opacity: 0.85;
 }
 
+.tileStatusBar {
+  flex-shrink: 0;
+  padding: rem(6) rem(8);
+  background: rgba(12, 12, 14, 0.92);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.tileStatusIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(244, 244, 245, 0.92);
+  line-height: 0;
+}
+
+.tileStatusWarn {
+  color: #f87171;
+}
+
+.tileStatusDeafen {
+  color: #fb923c;
+}
+
+.tileStatusShare {
+  color: #2dd4bf;
+}
+
+.tileStatusDim {
+  opacity: 0.38;
+}
+
 .placeholderTile {
-  aspect-ratio: 16 / 10;
+  display: flex;
+  flex-direction: column;
   border-radius: rem(8);
+  overflow: hidden;
+  background: linear-gradient(145deg, #25252c, #1a1a20);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.placeholderTileMain {
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: rem(8);
-  background: linear-gradient(145deg, #25252c, #1a1a20);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  aspect-ratio: 16 / 10;
+  padding: rem(12);
 }
 
 .controlBar {
