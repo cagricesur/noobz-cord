@@ -3,6 +3,7 @@ import {
   Room,
   RoomEvent,
   Track,
+  supportsAudioOutputSelection,
   type RemoteAudioTrack,
   type RemoteParticipant,
 } from "livekit-client";
@@ -32,6 +33,10 @@ export function defaultAudioPref(): IParticipantAudioPreference {
 export interface IConnectOptions {
   micDeviceId?: string;
   camDeviceId?: string;
+  /** When supported (e.g. Chromium), routes remote audio to this output device. */
+  audioOutputDeviceId?: string;
+  /** Start with remote audio muted for you (e.g. pre-join “speaker off”). */
+  joinDeafened?: boolean;
   micEnabled: boolean;
   camEnabled: boolean;
 }
@@ -81,6 +86,7 @@ export function useLiveKitConference() {
       setRoom(null);
       setChatMessages([]);
       setRoomLabel(null);
+      setDeafened(false);
       window.setTimeout(() => {
         localDisconnectRef.current = false;
       }, 600);
@@ -187,14 +193,30 @@ export function useLiveKitConference() {
           options.camDeviceId ? { deviceId: options.camDeviceId } : undefined,
         );
 
+        if (
+          options.audioOutputDeviceId &&
+          supportsAudioOutputSelection()
+        ) {
+          try {
+            await r.switchActiveDevice(
+              "audiooutput",
+              options.audioOutputDeviceId,
+            );
+          } catch {
+            /* unsupported or device gone */
+          }
+        }
+
         joinSoundDelayTimerRef.current = window.setTimeout(() => {
           allowJoinSoundsRef.current = true;
           joinSoundDelayTimerRef.current = null;
         }, 3000);
 
+        setDeafened(options.joinDeafened === true);
         setRoom(r);
         bump();
       } catch (e) {
+        setDeafened(false);
         const msg = e instanceof Error ? e.message : "Connection failed.";
         setError(msg);
         if (joinSoundDelayTimerRef.current !== null) {
@@ -291,6 +313,20 @@ export function useLiveKitConference() {
     [bump],
   );
 
+  const switchAudioOutput = useCallback(
+    async (deviceId: string) => {
+      const r = roomRef.current;
+      if (!r || !supportsAudioOutputSelection()) return;
+      try {
+        await r.switchActiveDevice("audiooutput", deviceId);
+        bump();
+      } catch {
+        /* device invalid or blocked */
+      }
+    },
+    [bump],
+  );
+
   return {
     room,
     roomLabel,
@@ -310,6 +346,7 @@ export function useLiveKitConference() {
     toggleScreenShare,
     switchMic,
     switchCamera,
+    switchAudioOutput,
   };
 }
 
