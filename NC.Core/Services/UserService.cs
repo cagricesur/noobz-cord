@@ -113,21 +113,25 @@ namespace NC.Core.Services
                 await context.UserTokens.AddAsync(userToken, cancellationToken);
                 await context.SaveChangesAsync(cancellationToken);
 
-                var htmlContent = (await parameterService.GetParameter("REGISTRATION.HTMLCONTENT", cancellationToken))?.Value ?? string.Empty;
-                htmlContent = htmlContent.Replace("{{YEAR}}", registration.Year.ToString());
-                htmlContent = htmlContent.Replace("{{USER_NAME}}", user.Name);
+                var title = await parameterService.GetTranslation(request.Language, "REGISTRATION.MAILTITLE", cancellationToken);
+                var htmlContent = await parameterService.GetTranslation(request.Language, "REGISTRATION.HTMLCONTENT", cancellationToken);
+                if (title != null && htmlContent != null) {
 
-                var publicUri = new Uri(appSettings.Value.PublicUrl);
+                    htmlContent = htmlContent.Replace("{{YEAR}}", registration.Year.ToString());
+                    htmlContent = htmlContent.Replace("{{USER_NAME}}", user.Name);
 
-                htmlContent = htmlContent.Replace("{{PUBLIC_URL}}", publicUri.ToString());
-                htmlContent = htmlContent.Replace("{{ACTIVATION_URL}}", new Uri(publicUri, $"activation?token={token}").ToString());
+                    var publicUri = new Uri(appSettings.Value.PublicUrl);
 
-                TimeZoneInfo tz = TimeZoneInfo.FindSystemTimeZoneById("Europe/Istanbul");
-                DateTimeOffset dto = TimeZoneInfo.ConvertTime(expiration, tz);
+                    htmlContent = htmlContent.Replace("{{PUBLIC_URL}}", publicUri.ToString());
+                    htmlContent = htmlContent.Replace("{{ACTIVATION_URL}}", new Uri(publicUri, $"activation?token={token}").ToString());
 
-                htmlContent = htmlContent.Replace("{{EXPIRES_AT}}", dto.ToString("yyyy-MM-dd HH:mm:ss zzz") + " (" + tz.Id + ")");
+                    TimeZoneInfo tz = TimeZoneInfo.FindSystemTimeZoneById("Europe/Istanbul");
+                    DateTimeOffset dto = TimeZoneInfo.ConvertTime(expiration, tz);
 
-                await mailService.SendMail(user.Contact, "Welcome to NoobzCord", string.Empty, htmlContent, cancellationToken);
+                    htmlContent = htmlContent.Replace("{{EXPIRES_AT}}", dto.ToString("yyyy-MM-dd HH:mm:ss zzz") + " (" + tz.Id + ")");
+
+                    await mailService.SendMail(user.Contact, title, string.Empty, htmlContent, cancellationToken);
+                }
 
                 response.SetSuccess(StatusCodes.Status201Created, new RegistrationResponse()
                 {

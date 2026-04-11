@@ -5,6 +5,7 @@ import { useAuthStore } from "@noobz-cord/stores";
 import { theme } from "@noobz-cord/theme";
 import { useColorSchemeCookieManager } from "@noobz-cord/utils";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
+import { ModalsProvider } from "@mantine/modals";
 
 import "@mantine/carousel/styles.css";
 import "@mantine/charts/styles.css";
@@ -56,8 +57,10 @@ const App: React.FunctionComponent = () => {
       colorSchemeManager={colorSchemeCookieManager}
       defaultColorScheme="dark"
     >
-      <Notifications />
-      <RouterProvider router={router} context={{ authState }} />
+      <ModalsProvider>
+        <Notifications />
+        <RouterProvider router={router} context={{ authState }} />
+      </ModalsProvider>
     </MantineProvider>
   );
 };

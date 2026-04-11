@@ -23,4 +23,5 @@ export interface RegistrationRequest {
    */
   password: string;
   passwordConfirm: string;
+  language: string;
 }

@@ -40,6 +40,12 @@ public class ParameterService(NoobzCordContext context, CacheService cacheServic
         return parameters.FirstOrDefault(entity => entity.Name == name);
     }
 
+    public async Task<string?> GetTranslation(string language, string name, CancellationToken cancellationToken)
+    {
+        var translations = await GetTranslations(language, cancellationToken);
+        return translations.FirstOrDefault(entity => entity.Name == name)?.Value;
+    }
+
     public async Task<List<TranslationData>> GetTranslations(
         string language,
         CancellationToken cancellationToken)
@@ -56,7 +62,7 @@ public class ParameterService(NoobzCordContext context, CacheService cacheServic
                                  ID = entity.ID,
                                  Name = entity.Name,
                                  Value = entity.Value,
-                                  Language = entity.Language
+                                 Language = entity.Language
                              })
                              .ToList();
         }, TimeSpan.FromHours(1));

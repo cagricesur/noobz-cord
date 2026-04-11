@@ -562,7 +562,8 @@
           "contact",
           "name",
           "password",
-          "passwordConfirm"
+          "passwordConfirm",
+          "language"
         ],
         "type": "object",
         "properties": {
@@ -583,6 +584,9 @@
             "type": "string"
           },
           "passwordConfirm": {
+            "type": "string"
+          },
+          "language": {
             "type": "string"
           }
         }

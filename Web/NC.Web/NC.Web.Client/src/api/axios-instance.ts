@@ -1,8 +1,4 @@
-import { notifications } from "@mantine/notifications";
 import Axios, { type AxiosError, type AxiosRequestConfig } from "axios";
-import { type ProblemDetails } from "./generated/models";
-
-import i18n from "@noobz-cord/i18n";
 import { useAuthStore } from "@noobz-cord/stores";
 
 export const AXIOS_INSTANCE = Axios.create({
@@ -20,25 +16,6 @@ AXIOS_INSTANCE.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  },
-);
-
-AXIOS_INSTANCE.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error: AxiosError<ProblemDetails>) => {
-    if (error.code != "ERR_CANCELED") {
-      notifications.clean();
-      notifications.show({
-        position: "top-center",
-        withBorder: false,
-        withCloseButton: true,
-        autoClose: 10000,
-        message: i18n.t(error.response?.data.title ?? "SERVICE_ERROR"),
-      });
-    }
-    return Promise.resolve();
   },
 );
 

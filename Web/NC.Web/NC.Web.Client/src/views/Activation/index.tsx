@@ -1,15 +1,14 @@
+import { LoadingOverlay } from "@mantine/core";
 import { getAuth } from "@noobz-cord/api";
 import { getRouteApi } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 const authApi = getAuth();
 
 const ActivationView: React.FunctionComponent = () => {
   const routeApi = getRouteApi("/activation");
-
   const search = routeApi.useSearch();
   const nav = routeApi.useNavigate();
-  const [isSuccess, setSuccess] = useState<boolean | undefined>(undefined);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -22,10 +21,10 @@ const ActivationView: React.FunctionComponent = () => {
           },
         )
         .then(() => {
-          setSuccess(true);
+          nav({ to: "/", search: { activation: true } });
         })
         .catch(() => {
-          setSuccess(false);
+          nav({ to: "/error" });
         });
     }
     return () => {
@@ -34,13 +33,11 @@ const ActivationView: React.FunctionComponent = () => {
   }, [nav, search.token]);
 
   return (
-    <>
-      {isSuccess === false && <div>Activation failed</div>}
-      {isSuccess === true && (
-        <div>Activation was successful, redirecting...</div>
-      )}
-      {isSuccess === undefined && <div>Activating...</div>}
-    </>
+    <LoadingOverlay
+      visible
+      overlayProps={{ fixed: true, blur: 5 }}
+      loaderProps={{ type: "bars" }}
+    />
   );
 };
 

@@ -3,17 +3,11 @@ import {
   AppShell,
   Avatar,
   Badge,
-  Box,
   Button,
-  Center,
   Drawer,
   Group,
-  Loader,
   Modal,
-  Paper,
-  rem,
   ScrollArea,
-  Select,
   Slider,
   Stack,
   Switch,
@@ -44,7 +38,7 @@ import {
   type Participant,
   type RemoteVideoTrack,
 } from "livekit-client";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useCookies } from "react-cookie";
 
 import {
@@ -53,6 +47,8 @@ import {
   COOKIE_CONFERENCE_CAM_DEVICE,
   COOKIE_CONFERENCE_MIC_DEVICE,
 } from "./conferenceRoomCookies";
+
+import { DeviceSelector } from "./DeviceSelector";
 import { ParticipantGrid } from "./ParticipantGrid";
 import { RemoteAudioPlayer } from "./RemoteAudioPlayer";
 import {
@@ -121,9 +117,8 @@ const HomeView: React.FunctionComponent = () => {
   const [devicesReady, setDevicesReady] = useState(false);
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(true);
-  /** When true, meeting audio uses the selected output device; when false, browser default. */
+  /** When true, apply selected speaker on join; when false, join deafened until undeafen. */
   const [customAudioOutputOn, setCustomAudioOutputOn] = useState(true);
-  const previewVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (room) return;
@@ -175,30 +170,6 @@ const HomeView: React.FunctionComponent = () => {
     conferenceCamCookie,
     conferenceAudioOutCookie,
   ]);
-
-  useEffect(() => {
-    if (room) return;
-    if (!devicesReady || !camOn || !selectedCam) {
-      if (previewVideoRef.current) previewVideoRef.current.srcObject = null;
-      return;
-    }
-    let stream: MediaStream | null = null;
-    void navigator.mediaDevices
-      .getUserMedia({
-        video: { deviceId: { exact: selectedCam } },
-        audio: false,
-      })
-      .then((s) => {
-        stream = s;
-        if (previewVideoRef.current) previewVideoRef.current.srcObject = s;
-      })
-      .catch(() => {
-        if (previewVideoRef.current) previewVideoRef.current.srcObject = null;
-      });
-    return () => {
-      stream?.getTracks().forEach((t) => t.stop());
-    };
-  }, [room, devicesReady, camOn, selectedCam]);
 
   useEffect(() => {
     if (!settingsOpen || !room) return;
@@ -363,164 +334,70 @@ const HomeView: React.FunctionComponent = () => {
       );
 
     return (
-      <Box className={classes.root}>
-        <Center className={classes.joinWrap}>
-          <Paper className={classes.joinCard} p="xl" radius="md" withBorder>
-            <Stack gap="md">
-              <div>
-                <Text size="xl" fw={700}>
-                  Video meeting
-                </Text>
-                <Text size="sm" c="dimmed">
-                  Choose your microphone, camera, and optional speaker output,
-                  set whether mic, camera, and hearing others start on or off,
-                  then join. Device choices are remembered for next time.
-                </Text>
-              </div>
-
-              {!devicesReady ? (
-                <Group justify="center" py="lg">
-                  <Loader size="sm" />
-                  <Text size="sm" c="dimmed">
-                    Loading devices…
-                  </Text>
-                </Group>
-              ) : (
-                <>
-                  <Select
-                    label="Microphone"
-                    placeholder="Select microphone"
-                    data={devices.mics.map((d) => ({
-                      value: d.deviceId,
-                      label: d.label || `Microphone ${d.deviceId.slice(0, 8)}…`,
-                    }))}
-                    value={selectedMic}
-                    onChange={setSelectedMic}
-                  />
-                  <Switch
-                    label="Microphone on when joining"
-                    checked={micOn}
-                    onChange={(e) => setMicOn(e.currentTarget.checked)}
-                  />
-
-                  {supportsAudioOutputSelection() ? (
-                    <>
-                      <Select
-                        label="Speakers / headphones"
-                        description="Where you hear everyone in the meeting"
-                        placeholder="Select output"
-                        data={speakerSelectData}
-                        value={selectedSpeaker}
-                        onChange={setSelectedSpeaker}
-                      />
-                      <Switch
-                        label="Use selected speaker when joining"
-                        description="Off joins deafened (hear no one) until you undeafen"
-                        checked={customAudioOutputOn}
-                        onChange={(e) =>
-                          setCustomAudioOutputOn(e.currentTarget.checked)
-                        }
-                      />
-                    </>
-                  ) : (
-                    <Text size="sm" c="dimmed">
-                      This browser does not support choosing a speaker output;
-                      audio uses the system default.
-                    </Text>
-                  )}
-
-                  <Select
-                    label="Camera"
-                    placeholder="Select camera"
-                    data={devices.cams.map((d) => ({
-                      value: d.deviceId,
-                      label: d.label || `Camera ${d.deviceId.slice(0, 8)}…`,
-                    }))}
-                    value={selectedCam}
-                    onChange={setSelectedCam}
-                  />
-                  <Switch
-                    label="Camera on when joining"
-                    checked={camOn}
-                    onChange={(e) => setCamOn(e.currentTarget.checked)}
-                  />
-
-                  <div className={classes.prejoinPreview}>
-                    {camOn && selectedCam ? (
-                      <video ref={previewVideoRef} playsInline muted autoPlay />
-                    ) : (
-                      <Center style={{ height: "100%", minHeight: rem(160) }}>
-                        <Text size="sm" c="dimmed" ta="center" px="md">
-                          Camera preview appears when camera is on and a device
-                          is selected.
-                        </Text>
-                      </Center>
-                    )}
-                  </div>
-                </>
-              )}
-
-              {error ? (
-                <Text size="sm" c="red">
-                  {error}
-                </Text>
-              ) : null}
-              <Button
-                fullWidth
-                size="md"
-                disabled={!canJoin}
-                onClick={() =>
-                  void (async () => {
-                    try {
-                      await connect({
-                        micDeviceId: selectedMic ?? undefined,
-                        camDeviceId: selectedCam ?? undefined,
-                        audioOutputDeviceId:
-                          supportsAudioOutputSelection() &&
-                          customAudioOutputOn &&
-                          selectedSpeaker
-                            ? selectedSpeaker
-                            : undefined,
-                        joinDeafened:
-                          supportsAudioOutputSelection() &&
-                          !customAudioOutputOn,
-                        micEnabled: micOn,
-                        camEnabled: camOn,
-                      });
-                      if (selectedMic) {
-                        setCookie(
-                          COOKIE_CONFERENCE_MIC_DEVICE,
-                          selectedMic,
-                          conferenceDeviceCookieOptions,
-                        );
-                      }
-                      if (selectedCam) {
-                        setCookie(
-                          COOKIE_CONFERENCE_CAM_DEVICE,
-                          selectedCam,
-                          conferenceDeviceCookieOptions,
-                        );
-                      }
-                      if (supportsAudioOutputSelection() && selectedSpeaker) {
-                        setCookie(
-                          COOKIE_CONFERENCE_AUDIO_OUTPUT_DEVICE,
-                          selectedSpeaker,
-                          conferenceDeviceCookieOptions,
-                        );
-                      }
-                    } catch {
-                      /* error state from hook */
-                    }
-                  })()
-                }
-                loading={connecting}
-              >
-                Join meeting
-              </Button>
-            </Stack>
-          </Paper>
-        </Center>
-      </Box>
+      <DeviceSelector
+        mode="prejoin"
+        devices={devices}
+        devicesReady={devicesReady}
+        selectedMic={selectedMic}
+        onSelectedMicChange={setSelectedMic}
+        selectedCam={selectedCam}
+        onSelectedCamChange={setSelectedCam}
+        selectedSpeaker={selectedSpeaker}
+        onSelectedSpeakerChange={setSelectedSpeaker}
+        micOn={micOn}
+        onMicOnChange={setMicOn}
+        camOn={camOn}
+        onCamOnChange={setCamOn}
+        customAudioOutputOn={customAudioOutputOn}
+        onCustomAudioOutputOnChange={setCustomAudioOutputOn}
+        speakerSelectData={speakerSelectData}
+        canJoin={canJoin}
+        connecting={connecting}
+        error={error}
+        onJoin={() =>
+          void (async () => {
+            try {
+              await connect({
+                micDeviceId: selectedMic ?? undefined,
+                camDeviceId: selectedCam ?? undefined,
+                audioOutputDeviceId:
+                  supportsAudioOutputSelection() &&
+                  customAudioOutputOn &&
+                  selectedSpeaker
+                    ? selectedSpeaker
+                    : undefined,
+                joinDeafened:
+                  supportsAudioOutputSelection() && !customAudioOutputOn,
+                micEnabled: micOn,
+                camEnabled: camOn,
+              });
+              if (selectedMic) {
+                setCookie(
+                  COOKIE_CONFERENCE_MIC_DEVICE,
+                  selectedMic,
+                  conferenceDeviceCookieOptions,
+                );
+              }
+              if (selectedCam) {
+                setCookie(
+                  COOKIE_CONFERENCE_CAM_DEVICE,
+                  selectedCam,
+                  conferenceDeviceCookieOptions,
+                );
+              }
+              if (supportsAudioOutputSelection() && selectedSpeaker) {
+                setCookie(
+                  COOKIE_CONFERENCE_AUDIO_OUTPUT_DEVICE,
+                  selectedSpeaker,
+                  conferenceDeviceCookieOptions,
+                );
+              }
+            } catch {
+              /* error state from hook */
+            }
+          })()
+        }
+      />
     );
   }
 
@@ -936,48 +813,19 @@ const HomeView: React.FunctionComponent = () => {
         title="Audio & video devices"
         centered
       >
-        <Stack gap="md">
-          <Select
-            label="Microphone"
-            placeholder="Choose microphone"
-            data={devices.mics.map((d) => ({
-              value: d.deviceId,
-              label: d.label || `Mic ${d.deviceId.slice(0, 8)}`,
-            }))}
-            value={selectedMic}
-            onChange={setSelectedMic}
-          />
-          <Select
-            label="Camera"
-            placeholder="Choose camera"
-            data={devices.cams.map((d) => ({
-              value: d.deviceId,
-              label: d.label || `Camera ${d.deviceId.slice(0, 8)}`,
-            }))}
-            value={selectedCam}
-            onChange={setSelectedCam}
-          />
-          {supportsAudioOutputSelection() ? (
-            <Select
-              label="Speakers / headphones"
-              description="Meeting audio playback"
-              placeholder="Choose output"
-              data={speakerSelectData}
-              value={selectedSpeaker}
-              onChange={setSelectedSpeaker}
-            />
-          ) : (
-            <Text size="sm" c="dimmed">
-              Speaker selection is not available in this browser.
-            </Text>
-          )}
-          <Group justify="flex-end">
-            <Button variant="default" onClick={closeSettings}>
-              Cancel
-            </Button>
-            <Button onClick={() => void onApplyDevices()}>Apply</Button>
-          </Group>
-        </Stack>
+        <DeviceSelector
+          mode="settings"
+          devices={devices}
+          selectedMic={selectedMic}
+          onSelectedMicChange={setSelectedMic}
+          selectedCam={selectedCam}
+          onSelectedCamChange={setSelectedCam}
+          selectedSpeaker={selectedSpeaker}
+          onSelectedSpeakerChange={setSelectedSpeaker}
+          speakerSelectData={speakerSelectData}
+          onApply={onApplyDevices}
+          onCancel={closeSettings}
+        />
       </Modal>
     </>
   );

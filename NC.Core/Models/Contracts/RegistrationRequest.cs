@@ -29,5 +29,8 @@ namespace NC.Core.Models.Contracts
 
         [Compare("Password", ErrorMessage = "VIEW.LOGIN.FORM.VALIDATON.PASSWORDCONFIRM.MATCH")]
         public required string PasswordConfirm { get; set; }
+
+        [Required]
+        public required string Language { get; set; }
     }
 }

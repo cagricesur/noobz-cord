@@ -1,29 +1,41 @@
-import { Button, Center, Stack, Text, Title } from "@mantine/core";
-import { IconExclamationCircle } from "@tabler/icons-react";
+import { Button, Center, Group, Stack, Text, Title } from "@mantine/core";
+import { getRouteApi } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
+import classnames from "./index.module.scss";
 
 const ErrorView: React.FunctionComponent = () => {
+  const routeApi = getRouteApi("/error");
+  const nav = routeApi.useNavigate();
+  const search = routeApi.useSearch();
+
+  const { t } = useTranslation();
+
   return (
-    <Center mih="100dvh" p="md">
-      <Stack gap="sm" align="center" maw={480}>
-        <IconExclamationCircle size={96} />
-        <Title order={2} ta="center">
-          ERROR
+    <Center w="100dvw" className={classnames.root}>
+      <Text className={classnames.code}>{search.error?.code ?? 503}</Text>
+
+      <Stack className={classnames.stack}>
+        <Title className={classnames.title}>
+          {search.error?.title ?? t("VIEW.ERROR.TITLE")}
         </Title>
-        <Text c="dimmed" ta="center">
-          Something unexpected occured
-        </Text>
-        <Text c="dimmed" ta="center">
-          Please try again later
+        <Text c="dimmed" ta="center" className={classnames.description}>
+          {search.error?.descripton ?? t("VIEW.ERROR.DESC")}
         </Text>
 
-        <Button
-          mt="xl"
-          onClick={() => {
-            window.location.replace("/");
-          }}
-        >
-          RETRY
-        </Button>
+        <Group justify="center">
+          <Button
+            size="md"
+            onClick={() => {
+              if (search.error?.buttonClick) {
+                search.error.buttonClick();
+              } else {
+                nav({ to: "/" });
+              }
+            }}
+          >
+            {search.error?.buttonText ?? t("VIEW.ERROR.BUTTONTEXT")}
+          </Button>
+        </Group>
       </Stack>
     </Center>
   );
