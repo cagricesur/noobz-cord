@@ -7,4 +7,6 @@
 
 export interface ActivationRequest {
   token: string;
+  tokenHash: string;
+  pin: string;
 }

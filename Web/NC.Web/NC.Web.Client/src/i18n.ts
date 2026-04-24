@@ -4,10 +4,10 @@ import LanguageDetector from "i18next-browser-languagedetector";
 import Backend, { type HttpBackendOptions } from "i18next-http-backend";
 import { initReactI18next } from "react-i18next";
 
-import { getParameter, type TranslationData } from "@noobz-cord/api";
+import { getTranslation, type TranslationData } from "@noobz-cord/api";
 
 const debug = import.meta.env.DEV;
-const api = getParameter();
+const api = getTranslation();
 
 export const NC_COOKIE_LANGUAGE = "noobzcord-language";
 
@@ -67,12 +67,12 @@ i18n
             } as TranslationData;
           });
           api
-            .postApiParameterAddMissingTranslations(translations)
+            .postApiTranslationAddMissingTranslations(translations)
             .then(() => {})
             .catch(() => {});
         } else {
           api
-            .getApiParameterGetTranslations({ language })
+            .getApiTranslationGetTranslations({ language })
             .then((data) => {
               const records: Record<string, string> = {};
               for (const row of data) {

@@ -1,7 +1,10 @@
 <Solution>
   <Folder Name="/App/">
     <Project Path="NC.Core/NC.Core.csproj" Id="a7437cf3-93a0-4698-9ca4-cb1bcf8c672b" />
-    <Project Path="NC.Data/NC.Data.csproj" Id="7c769697-6bd3-494c-9aa7-26f9b60c685a" />
+    <Project Path="NC.Entities/NC.Entities.csproj" />
+    <Project Path="NC.Models/NC.Models.csproj" Id="bcb8cad3-90c7-49ca-a81d-089e45d250fb" />
+    <Project Path="NC.Services/NC.Services.csproj" Id="4ba404ef-44e2-4c9a-88ae-720c3b0dad2a" />
+    <Project Path="NC.Utils/NC.Utils.csproj" Id="ee12d93f-6964-486e-bbb6-7157d0a59f95" />
   </Folder>
   <Folder Name="/Web/">
     <Project Path="Web/NC.Web/nc.web.client/NC.Web.Client.esproj">

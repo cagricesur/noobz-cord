@@ -115,7 +115,7 @@ export function useLiveKitConference() {
       setConnecting(true);
       setError(null);
       try {
-        const res = await getConference().postApiConferenceJoin();
+        const res = await getConference().getApiConferenceJoin();
         if (!res?.token || !res.server || !res.room) {
           throw new Error(
             "Could not join the conference (missing token or server).",
@@ -193,10 +193,7 @@ export function useLiveKitConference() {
           options.camDeviceId ? { deviceId: options.camDeviceId } : undefined,
         );
 
-        if (
-          options.audioOutputDeviceId &&
-          supportsAudioOutputSelection()
-        ) {
+        if (options.audioOutputDeviceId && supportsAudioOutputSelection()) {
           try {
             await r.switchActiveDevice(
               "audiooutput",

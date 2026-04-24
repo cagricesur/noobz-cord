@@ -6,7 +6,10 @@
  */
 
 export interface ConferenceResponse {
-  server?: string;
-  room?: string;
-  token?: string;
+  /** @nullable */
+  server?: string | null;
+  /** @nullable */
+  room?: string | null;
+  /** @nullable */
+  token?: string | null;
 }

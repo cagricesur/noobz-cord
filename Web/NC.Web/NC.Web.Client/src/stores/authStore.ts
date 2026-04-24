@@ -3,15 +3,15 @@ import { create } from "zustand";
 
 export const useAuthStore = create<IAuthStoreState>((set) => ({
   authenticated: false,
-  login(user) {
-    const { name, token, ...rest } = user;
-    const authenticated = name && token ? true : false;
+  login(info) {
+    const { user, token, ...rest } = info;
+    const authenticated = user && token ? true : false;
     set({
-      user: authenticated ? { name, token, ...rest } : undefined,
+      info: authenticated ? { user, token, ...rest } : undefined,
       authenticated,
     });
   },
   logout() {
-    set({ user: undefined, authenticated: false });
+    set({ info: undefined, authenticated: false });
   },
 }));

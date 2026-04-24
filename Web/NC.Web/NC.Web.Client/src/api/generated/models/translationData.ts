@@ -6,8 +6,8 @@
  */
 
 export interface TranslationData {
-  language?: string;
   id?: string;
-  name?: string;
-  value?: string;
+  name: string;
+  language: string;
+  value: string;
 }

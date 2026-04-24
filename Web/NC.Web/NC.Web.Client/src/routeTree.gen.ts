@@ -9,6 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as ErrorRouteImport } from './routes/error'
 import { Route as ActivationRouteImport } from './routes/activation'
 import { Route as ProtectedRouteImport } from './routes/_protected'
@@ -20,6 +22,16 @@ import { Route as ProtectedAdminIndexRouteImport } from './routes/_protected/adm
 import { Route as ProtectedAdminTranslationsRouteImport } from './routes/_protected/admin/translations'
 import { Route as ProtectedAdminCacheRouteImport } from './routes/_protected/admin/cache'
 
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ErrorRoute = ErrorRouteImport.update({
   id: '/error',
   path: '/error',
@@ -75,6 +87,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/activation': typeof ActivationRoute
   '/error': typeof ErrorRoute
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
   '/admin': typeof ProtectedAdminRouteWithChildren
   '/dashboard': typeof ProtectedDashboardRoute
   '/settings': typeof ProtectedSettingsRoute
@@ -86,6 +100,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/activation': typeof ActivationRoute
   '/error': typeof ErrorRoute
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
   '/dashboard': typeof ProtectedDashboardRoute
   '/settings': typeof ProtectedSettingsRoute
   '/admin/cache': typeof ProtectedAdminCacheRoute
@@ -98,6 +114,8 @@ export interface FileRoutesById {
   '/_protected': typeof ProtectedRouteWithChildren
   '/activation': typeof ActivationRoute
   '/error': typeof ErrorRoute
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
   '/_protected/admin': typeof ProtectedAdminRouteWithChildren
   '/_protected/dashboard': typeof ProtectedDashboardRoute
   '/_protected/settings': typeof ProtectedSettingsRoute
@@ -111,6 +129,8 @@ export interface FileRouteTypes {
     | '/'
     | '/activation'
     | '/error'
+    | '/login'
+    | '/register'
     | '/admin'
     | '/dashboard'
     | '/settings'
@@ -122,6 +142,8 @@ export interface FileRouteTypes {
     | '/'
     | '/activation'
     | '/error'
+    | '/login'
+    | '/register'
     | '/dashboard'
     | '/settings'
     | '/admin/cache'
@@ -133,6 +155,8 @@ export interface FileRouteTypes {
     | '/_protected'
     | '/activation'
     | '/error'
+    | '/login'
+    | '/register'
     | '/_protected/admin'
     | '/_protected/dashboard'
     | '/_protected/settings'
@@ -146,10 +170,26 @@ export interface RootRouteChildren {
   ProtectedRoute: typeof ProtectedRouteWithChildren
   ActivationRoute: typeof ActivationRoute
   ErrorRoute: typeof ErrorRoute
+  LoginRoute: typeof LoginRoute
+  RegisterRoute: typeof RegisterRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/error': {
       id: '/error'
       path: '/error'
@@ -260,6 +300,8 @@ const rootRouteChildren: RootRouteChildren = {
   ProtectedRoute: ProtectedRouteWithChildren,
   ActivationRoute: ActivationRoute,
   ErrorRoute: ErrorRoute,
+  LoginRoute: LoginRoute,
+  RegisterRoute: RegisterRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -4,7 +4,8 @@ import { z } from "zod";
 
 export const Route = createFileRoute("/activation")({
   validateSearch: z.object({
-    token: z.string().optional(),
+    token: z.string(),
+    tokenHash: z.string(),
   }),
   beforeLoad: ({ search }) => {
     if (!search.token) {

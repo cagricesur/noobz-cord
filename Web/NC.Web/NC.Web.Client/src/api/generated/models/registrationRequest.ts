@@ -20,8 +20,8 @@ export interface RegistrationRequest {
   /**
    * @minLength 8
    * @maxLength 16
+   * @pattern ^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>?`~]).+$
    */
   password: string;
   passwordConfirm: string;
-  language: string;
 }

@@ -1,9 +1,11 @@
 import type { LoginResponse } from "@noobz-cord/api";
 
+export * from "./constants";
+
 export interface IAuthStoreState {
-  user?: LoginResponse;
+  info?: LoginResponse;
   authenticated: boolean;
-  login: (user: LoginResponse) => void;
+  login: (info: LoginResponse) => void;
   logout: () => void;
 }
 

@@ -6,5 +6,7 @@
  */
 
 export interface RegistrationResponse {
-  name?: string;
+  token?: string;
+  /** @nullable */
+  tokenHash?: string | null;
 }

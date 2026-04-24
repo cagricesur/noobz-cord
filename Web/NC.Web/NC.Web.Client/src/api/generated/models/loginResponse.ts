@@ -4,10 +4,10 @@
  * NC.Web.Server | v1
  * OpenAPI spec version: 1.0.0
  */
-import type { UserRoleEnum } from "./userRoleEnum";
+import type { UserData } from "./userData";
 
 export interface LoginResponse {
-  name?: string;
-  token?: string;
-  role?: UserRoleEnum;
+  user?: null | UserData;
+  /** @nullable */
+  token?: string | null;
 }

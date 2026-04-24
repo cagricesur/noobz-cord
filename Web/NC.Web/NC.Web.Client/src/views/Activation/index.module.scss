@@ -1,0 +1,12 @@
+.root {
+  @include larger-than($mantine-breakpoint-xs) {
+    width: 480px;
+  }
+  @include smaller-than($mantine-breakpoint-xs) {
+    width: 320px;
+  }
+  .brand {
+    font-family: "Cherry Bomb One";
+    font-size: 32px;
+  }
+}

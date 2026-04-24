@@ -11,8 +11,8 @@ import {
   Switch,
   Text,
 } from "@mantine/core";
-import { supportsAudioOutputSelection } from "livekit-client";
 import { useEffect, useRef } from "react";
+import { SpeakerOutputBlock } from "./SpeakerSelector";
 
 import classes from "./index.module.scss";
 
@@ -57,64 +57,6 @@ export type DeviceSelectorSettingsProps = DeviceSelectorShared & {
 export type DeviceSelectorProps =
   | DeviceSelectorPrejoinProps
   | DeviceSelectorSettingsProps;
-
-function SpeakerOutputBlock({
-  mode,
-  speakerSelectData,
-  selectedSpeaker,
-  onSelectedSpeakerChange,
-  customAudioOutputOn,
-  onCustomAudioOutputOnChange,
-}: {
-  mode: "prejoin" | "settings";
-  speakerSelectData: { value: string; label: string }[];
-  selectedSpeaker: string | null;
-  onSelectedSpeakerChange: (value: string | null) => void;
-  customAudioOutputOn?: boolean;
-  onCustomAudioOutputOnChange?: (on: boolean) => void;
-}) {
-  if (!supportsAudioOutputSelection()) {
-    return (
-      <Text size="sm" c="dimmed">
-        {mode === "prejoin"
-          ? "This browser does not support choosing a speaker output; audio uses the system default."
-          : "Speaker selection is not available in this browser."}
-      </Text>
-    );
-  }
-
-  if (mode === "settings") {
-    return (
-      <Select
-        label="Speakers / headphones"
-        description="Meeting audio playback"
-        placeholder="Choose output"
-        data={speakerSelectData}
-        value={selectedSpeaker}
-        onChange={onSelectedSpeakerChange}
-      />
-    );
-  }
-
-  return (
-    <>
-      <Select
-        label="Speakers / headphones"
-        description="Where you hear everyone in the meeting"
-        placeholder="Select output"
-        data={speakerSelectData}
-        value={selectedSpeaker}
-        onChange={onSelectedSpeakerChange}
-      />
-      <Switch
-        label="Use selected speaker when joining"
-        description="Off joins deafened (hear no one) until you undeafen"
-        checked={customAudioOutputOn!}
-        onChange={(e) => onCustomAudioOutputOnChange!(e.currentTarget.checked)}
-      />
-    </>
-  );
-}
 
 export const DeviceSelector: React.FunctionComponent<DeviceSelectorProps> = (
   props,
@@ -233,16 +175,11 @@ export const DeviceSelector: React.FunctionComponent<DeviceSelectorProps> = (
       <Center className={classes.joinWrap}>
         <Paper className={classes.joinCard} p="xl" radius="md" withBorder>
           <Stack gap="md">
-            <div>
-              <Text size="xl" fw={700}>
-                Video meeting
-              </Text>
-              <Text size="sm" c="dimmed">
-                Choose your microphone, camera, and optional speaker output, set
-                whether mic, camera, and hearing others start on or off, then
-                join. Device choices are remembered for next time.
-              </Text>
-            </div>
+            <Text size="sm" c="dimmed">
+              Choose your microphone, camera, and optional speaker output, set
+              whether mic, camera, and hearing others start on or off, then
+              join. Device choices are remembered for next time.
+            </Text>
 
             {!devicesReady ? (
               <Group justify="center" py="lg">

@@ -11,16 +11,16 @@ import { customInstance } from "../axios-instance";
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 export const getConference = () => {
-  const postApiConferenceJoin = (
+  const getApiConferenceJoin = (
     options?: SecondParameter<typeof customInstance<ConferenceResponse>>,
   ) => {
     return customInstance<ConferenceResponse>(
-      { url: `/api/Conference/Join`, method: "POST" },
+      { url: `/api/Conference/Join`, method: "GET" },
       options,
     );
   };
-  return { postApiConferenceJoin };
+  return { getApiConferenceJoin };
 };
-export type PostApiConferenceJoinResult = NonNullable<
-  Awaited<ReturnType<ReturnType<typeof getConference>["postApiConferenceJoin"]>>
+export type GetApiConferenceJoinResult = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getConference>["getApiConferenceJoin"]>>
 >;
