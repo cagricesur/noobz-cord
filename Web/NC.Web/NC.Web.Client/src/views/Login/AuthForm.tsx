@@ -10,7 +10,7 @@ import { COOKIES } from "@noobz-cord/models";
 import { useAuthStore } from "@noobz-cord/stores";
 import { getRouteApi } from "@tanstack/react-router";
 import type { AxiosError } from "axios";
-import { forwardRef, useImperativeHandle, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { useCookies } from "react-cookie";
 import { useTranslation } from "react-i18next";
 
@@ -18,7 +18,8 @@ const api = getUser();
 
 export const AuthForm = forwardRef<IAuthFormActions, unknown>((_, ref) => {
   const { t } = useTranslation();
-  const authStore = useAuthStore();
+  const authenticated = useAuthStore((state) => state.authenticated);
+  const login = useAuthStore((state) => state.login);
   const router = getRouteApi("/login");
   const nav = router.useNavigate();
   const [cookies, setCookie, removeCookie] = useCookies([
@@ -50,6 +51,12 @@ export const AuthForm = forwardRef<IAuthFormActions, unknown>((_, ref) => {
     };
   }, [form]);
 
+  useEffect(() => {
+    if (authenticated) {
+      nav({ to: "/" });
+    }
+  }, [authenticated, nav]);
+
   const submit = (values: {
     mail: string;
     password: string;
@@ -64,14 +71,13 @@ export const AuthForm = forwardRef<IAuthFormActions, unknown>((_, ref) => {
       .then((response) => {
         const authenticated = response && response.user && response.token;
         if (authenticated) {
-          authStore.login(response);
+          login(response);
           setCookie(COOKIES.AUTH_REMEMBER_ME, values.remember);
           if (values.remember) {
             setCookie(COOKIES.AUTH_MAIL, values.mail);
           } else {
             removeCookie(COOKIES.AUTH_MAIL);
           }
-          nav({ to: "/", replace: true });
         }
       })
       .catch((error: AxiosError<ServiceError>) => {
