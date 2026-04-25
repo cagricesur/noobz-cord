@@ -63,6 +63,31 @@ import { VideoTile } from "./VideoTile";
 import logo from "@noobz-cord/assets/logo.png";
 import classes from "./index.module.scss";
 
+const devicePermissionMessage = (
+  kind: "microphone" | "camera",
+  error: unknown,
+) => {
+  if (error instanceof DOMException) {
+    if (
+      error.name === "NotAllowedError" ||
+      error.name === "PermissionDeniedError"
+    ) {
+      return `Permission to use your ${kind} was denied.`;
+    }
+    if (
+      error.name === "NotFoundError" ||
+      error.name === "DevicesNotFoundError"
+    ) {
+      return `No ${kind} was found.`;
+    }
+    if (error.name === "NotReadableError" || error.name === "TrackStartError") {
+      return `Your ${kind} is already in use or cannot be started.`;
+    }
+  }
+
+  return `Could not check ${kind} permission.`;
+};
+
 const HomeView: React.FunctionComponent = () => {
   const {
     room,
@@ -117,6 +142,9 @@ const HomeView: React.FunctionComponent = () => {
   const [selectedCam, setSelectedCam] = useState<string | null>(null);
   const [selectedSpeaker, setSelectedSpeaker] = useState<string | null>(null);
   const [devicesReady, setDevicesReady] = useState(false);
+  const [devicePermissionError, setDevicePermissionError] = useState<
+    string | null
+  >(null);
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(true);
   /** When true, apply selected speaker on join; when false, join deafened until undeafen. */
@@ -125,22 +153,58 @@ const HomeView: React.FunctionComponent = () => {
   useEffect(() => {
     if (room) return;
     let cancelled = false;
-    let permissionStream: MediaStream | null = null;
+    const permissionStreams: MediaStream[] = [];
     void (async () => {
+      const permissionMessages: string[] = [];
+
+      if (!navigator.mediaDevices?.enumerateDevices) {
+        if (!cancelled) {
+          setDevicePermissionError(
+            "This browser cannot access media devices. Use a supported browser over HTTPS.",
+          );
+          setDevicesReady(true);
+        }
+        return;
+      }
+
+      if (navigator.mediaDevices.getUserMedia) {
+        try {
+          permissionStreams.push(
+            await navigator.mediaDevices.getUserMedia({ audio: true }),
+          );
+        } catch (e) {
+          permissionMessages.push(devicePermissionMessage("microphone", e));
+        }
+
+        try {
+          permissionStreams.push(
+            await navigator.mediaDevices.getUserMedia({ video: true }),
+          );
+        } catch (e) {
+          permissionMessages.push(devicePermissionMessage("camera", e));
+        }
+      } else {
+        permissionMessages.push(
+          "This browser cannot request microphone or camera permission.",
+        );
+      }
+
+      if (cancelled) return;
+
+      let all: MediaDeviceInfo[] = [];
       try {
-        permissionStream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-          video: true,
-        });
+        all = await navigator.mediaDevices.enumerateDevices();
       } catch {
-        /* permission denied or no hardware */
+        permissionMessages.push("Could not load your available media devices.");
       }
       if (cancelled) return;
-      const all = await navigator.mediaDevices.enumerateDevices();
       const mics = all.filter((d) => d.kind === "audioinput");
       const cams = all.filter((d) => d.kind === "videoinput");
       const speakers = all.filter((d) => d.kind === "audiooutput");
       setDevices({ mics, cams, speakers });
+      if (cams.length === 0) {
+        setCamOn(false);
+      }
       const micId = mics.some((d) => d.deviceId === conferenceMicCookie)
         ? conferenceMicCookie!
         : (mics[0]?.deviceId ?? null);
@@ -159,12 +223,21 @@ const HomeView: React.FunctionComponent = () => {
       setSelectedMic(micId);
       setSelectedCam(camId);
       setSelectedSpeaker(speakerId);
+      setDevicePermissionError(
+        permissionMessages.length > 0
+          ? Array.from(new Set(permissionMessages)).join(" ")
+          : null,
+      );
       setDevicesReady(true);
-      permissionStream?.getTracks().forEach((t) => t.stop());
+      permissionStreams.forEach((stream) =>
+        stream.getTracks().forEach((t) => t.stop()),
+      );
     })();
     return () => {
       cancelled = true;
-      permissionStream?.getTracks().forEach((t) => t.stop());
+      permissionStreams.forEach((stream) =>
+        stream.getTracks().forEach((t) => t.stop()),
+      );
     };
   }, [
     room,
@@ -325,10 +398,11 @@ const HomeView: React.FunctionComponent = () => {
           : (room?.state ?? "");
 
   if (!room) {
+    const hasCamera = devices.cams.length > 0;
     const canJoin =
       devicesReady &&
       !(micOn && !selectedMic) &&
-      !(camOn && !selectedCam) &&
+      !(camOn && hasCamera && !selectedCam) &&
       !(
         supportsAudioOutputSelection() &&
         customAudioOutputOn &&
@@ -340,6 +414,7 @@ const HomeView: React.FunctionComponent = () => {
         mode="prejoin"
         devices={devices}
         devicesReady={devicesReady}
+        devicePermissionError={devicePermissionError}
         selectedMic={selectedMic}
         onSelectedMicChange={setSelectedMic}
         selectedCam={selectedCam}
@@ -371,7 +446,7 @@ const HomeView: React.FunctionComponent = () => {
                 joinDeafened:
                   supportsAudioOutputSelection() && !customAudioOutputOn,
                 micEnabled: micOn,
-                camEnabled: camOn,
+                camEnabled: camOn && Boolean(selectedCam),
               });
               if (selectedMic) {
                 setCookie(

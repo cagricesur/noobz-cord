@@ -36,6 +36,7 @@ type DeviceSelectorShared = {
 export type DeviceSelectorPrejoinProps = DeviceSelectorShared & {
   mode: "prejoin";
   devicesReady: boolean;
+  devicePermissionError: string | null;
   micOn: boolean;
   onMicOnChange: (on: boolean) => void;
   camOn: boolean;
@@ -151,6 +152,7 @@ export const DeviceSelector: React.FunctionComponent<DeviceSelectorProps> = (
   const {
     devices,
     devicesReady,
+    devicePermissionError,
     selectedMic,
     onSelectedMicChange,
     selectedCam,
@@ -193,6 +195,7 @@ export const DeviceSelector: React.FunctionComponent<DeviceSelectorProps> = (
                 <Select
                   label="Microphone"
                   placeholder="Select microphone"
+                  nothingFoundMessage="No microphones found"
                   data={devices.mics.map((d) => ({
                     value: d.deviceId,
                     label: d.label || `Microphone ${d.deviceId.slice(0, 8)}…`,
@@ -218,6 +221,7 @@ export const DeviceSelector: React.FunctionComponent<DeviceSelectorProps> = (
                 <Select
                   label="Camera"
                   placeholder="Select camera"
+                  nothingFoundMessage="No cameras found"
                   data={devices.cams.map((d) => ({
                     value: d.deviceId,
                     label: d.label || `Camera ${d.deviceId.slice(0, 8)}…`,
@@ -228,6 +232,7 @@ export const DeviceSelector: React.FunctionComponent<DeviceSelectorProps> = (
                 <Switch
                   label="Camera on when joining"
                   checked={camOn}
+                  disabled={devices.cams.length === 0}
                   onChange={(e) => onCamOnChange(e.currentTarget.checked)}
                 />
 
@@ -246,6 +251,11 @@ export const DeviceSelector: React.FunctionComponent<DeviceSelectorProps> = (
               </>
             )}
 
+            {devicePermissionError ? (
+              <Text size="sm" c="orange">
+                {devicePermissionError}
+              </Text>
+            ) : null}
             {error ? (
               <Text size="sm" c="red">
                 {error}

@@ -32,6 +32,7 @@ export const SpeakerOutputBlock: React.FunctionComponent<{
         label="Speakers / headphones"
         description="Meeting audio playback"
         placeholder="Choose output"
+        nothingFoundMessage="No speaker outputs found"
         data={speakerSelectData}
         value={selectedSpeaker}
         onChange={onSelectedSpeakerChange}
@@ -44,6 +45,7 @@ export const SpeakerOutputBlock: React.FunctionComponent<{
       <Select
         label="Speakers / headphones"
         placeholder="Select output"
+        nothingFoundMessage="No speaker outputs found"
         data={speakerSelectData}
         value={selectedSpeaker}
         onChange={onSelectedSpeakerChange}
