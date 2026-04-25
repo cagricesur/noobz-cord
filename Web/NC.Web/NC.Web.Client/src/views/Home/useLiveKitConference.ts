@@ -1,4 +1,6 @@
 import { getConference } from "@noobz-cord/api";
+import { getAccessToken } from "@noobz-cord/api/axios-instance";
+import * as signalR from "@microsoft/signalr";
 import {
   Room,
   RoomEvent,
@@ -41,8 +43,23 @@ export interface IConnectOptions {
   camEnabled: boolean;
 }
 
+interface ConferenceJoinStatus {
+  hasDuplicate: boolean;
+  message?: string | null;
+}
+
+interface ConferenceJoinDecision {
+  accepted: boolean;
+  message?: string | null;
+}
+
 export function useLiveKitConference() {
   const roomRef = useRef<Room | null>(null);
+  const hubConnectionRef = useRef<signalR.HubConnection | null>(null);
+  const hubStartPromiseRef = useRef<Promise<signalR.HubConnection> | null>(
+    null,
+  );
+  const conferenceRegisteredRef = useRef(false);
   const allowJoinSoundsRef = useRef(false);
   const joinSoundDelayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
@@ -72,7 +89,36 @@ export function useLiveKitConference() {
 
   const bump = useCallback(() => setTick((n) => n + 1), []);
 
-  const disconnect = useCallback(() => {
+  const unregisterConferenceSession = useCallback(async () => {
+    const connection = hubConnectionRef.current;
+
+    if (
+      !conferenceRegisteredRef.current ||
+      !connection ||
+      connection.state !== signalR.HubConnectionState.Connected
+    ) {
+      conferenceRegisteredRef.current = false;
+      return;
+    }
+
+    conferenceRegisteredRef.current = false;
+    await connection.invoke("EndConferenceSession");
+  }, []);
+
+  const stopHubConnection = useCallback(async () => {
+    const connection = hubConnectionRef.current;
+    hubStartPromiseRef.current = null;
+    hubConnectionRef.current = null;
+
+    if (
+      connection &&
+      connection.state !== signalR.HubConnectionState.Disconnected
+    ) {
+      await connection.stop();
+    }
+  }, []);
+
+  const disconnect = useCallback((notifyHub = true, message?: string) => {
     const r = roomRef.current;
     if (r) {
       localDisconnectRef.current = true;
@@ -91,7 +137,120 @@ export function useLiveKitConference() {
         localDisconnectRef.current = false;
       }, 600);
     }
-  }, []);
+
+    if (message) {
+      setError(message);
+    }
+
+    if (notifyHub) {
+      void unregisterConferenceSession().finally(() => {
+        void stopHubConnection();
+      });
+    } else {
+      conferenceRegisteredRef.current = false;
+      void stopHubConnection();
+    }
+  }, [stopHubConnection, unregisterConferenceSession]);
+
+  const ensureHubConnection = useCallback(async () => {
+    const existingConnection = hubConnectionRef.current;
+    if (
+      existingConnection?.state === signalR.HubConnectionState.Connected
+    ) {
+      return existingConnection;
+    }
+
+    if (hubStartPromiseRef.current) {
+      return hubStartPromiseRef.current;
+    }
+
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl("/hubs/noobzcord", {
+        accessTokenFactory: async () => (await getAccessToken()) ?? "",
+      })
+      .withAutomaticReconnect()
+      .build();
+
+    connection.on("ConferenceInstanceKicked", (message?: string) => {
+      disconnect(
+        false,
+        message ??
+          "You were signed off because this user joined the conference from another instance.",
+      );
+    });
+
+    connection.onreconnecting(() => {
+      conferenceRegisteredRef.current = false;
+    });
+
+    connection.onreconnected(() => {
+      if (!roomRef.current) return;
+
+      void connection
+        .invoke<ConferenceJoinStatus>("BeginConferenceJoin")
+        .then((status) => {
+          if (status.hasDuplicate) {
+            disconnect(
+              false,
+              "You were signed off because this user joined the conference from another instance.",
+            );
+            return;
+          }
+
+          conferenceRegisteredRef.current = true;
+        })
+        .catch(() => {
+          disconnect(false, "Conference session synchronization failed.");
+        });
+    });
+
+    connection.onclose(() => {
+      conferenceRegisteredRef.current = false;
+      if (hubConnectionRef.current === connection) {
+        hubConnectionRef.current = null;
+      }
+      hubStartPromiseRef.current = null;
+    });
+
+    hubConnectionRef.current = connection;
+    hubStartPromiseRef.current = connection.start().then(() => connection);
+
+    try {
+      return await hubStartPromiseRef.current;
+    } finally {
+      hubStartPromiseRef.current = null;
+    }
+  }, [disconnect]);
+
+  const confirmSingleConferenceInstance = useCallback(async () => {
+    const connection = await ensureHubConnection();
+    const status = await connection.invoke<ConferenceJoinStatus>(
+      "BeginConferenceJoin",
+    );
+
+    if (!status.hasDuplicate) {
+      conferenceRegisteredRef.current = true;
+      return;
+    }
+
+    const replaceExisting = window.confirm(
+      status.message ??
+        "Only one instance of the same user can be in the conference room. Do you want to sign off the currently joined instance and continue here?",
+    );
+
+    const decision = await connection.invoke<ConferenceJoinDecision>(
+      "ResolveDuplicateConferenceInstance",
+      replaceExisting,
+    );
+
+    if (!decision.accepted) {
+      conferenceRegisteredRef.current = false;
+      void stopHubConnection();
+      throw new Error(decision.message ?? "Conference join cancelled.");
+    }
+
+    conferenceRegisteredRef.current = true;
+  }, [ensureHubConnection, stopHubConnection]);
 
   useEffect(() => {
     return () => {
@@ -104,8 +263,11 @@ export function useLiveKitConference() {
         r.disconnect();
         roomRef.current = null;
       }
+      void unregisterConferenceSession().finally(() => {
+        void stopHubConnection();
+      });
     };
-  }, []);
+  }, [stopHubConnection, unregisterConferenceSession]);
 
   const connect = useCallback(
     async (options: IConnectOptions) => {
@@ -115,6 +277,7 @@ export function useLiveKitConference() {
       setConnecting(true);
       setError(null);
       try {
+        await confirmSingleConferenceInstance();
         const res = await getConference().getApiConferenceJoin();
         if (!res?.token || !res.server || !res.room) {
           throw new Error(
@@ -230,12 +393,20 @@ export function useLiveKitConference() {
           }
           roomRef.current = null;
         }
+        await unregisterConferenceSession().finally(() => {
+          void stopHubConnection();
+        });
         throw e;
       } finally {
         setConnecting(false);
       }
     },
-    [bump],
+    [
+      bump,
+      confirmSingleConferenceInstance,
+      stopHubConnection,
+      unregisterConferenceSession,
+    ],
   );
 
   const sendChat = useCallback((text: string) => {

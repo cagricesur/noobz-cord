@@ -91,16 +91,22 @@ const refreshJwtToken = () => {
   return refreshTokenPromise;
 };
 
+export const getAccessToken = async () => {
+  const authState = useAuthStore.getState();
+  let token = authState.info?.tokenData?.token;
+
+  if (authState.info?.tokenData?.expires) {
+    if (isTokenExpired(authState.info.tokenData.expires)) {
+      token = await refreshJwtToken();
+    }
+  }
+
+  return token;
+};
+
 AXIOS_INSTANCE.interceptors.request.use(
   async (config) => {
-    const authState = useAuthStore.getState();
-    let token = authState.info?.tokenData?.token;
-
-    if (authState.info?.tokenData?.expires) {
-      if (isTokenExpired(authState.info.tokenData.expires)) {
-        token = await refreshJwtToken();
-      }
-    }
+    const token = await getAccessToken();
 
     if (token) {
       setHeader(config, "Authorization", `Bearer ${token}`);
