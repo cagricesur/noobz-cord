@@ -2,9 +2,8 @@
 
 namespace NC.Models.Contracts
 {
-    public class LoginResponse : ServiceResponse
+    public class RefreshTokenResponse : ServiceResponse
     {
-        public UserData? UserData { get; set; }
         public JwtTokenData? TokenData { get; set; }
     }
 }

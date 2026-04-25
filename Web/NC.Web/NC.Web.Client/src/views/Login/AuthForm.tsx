@@ -69,7 +69,8 @@ export const AuthForm = forwardRef<IAuthFormActions, unknown>((_, ref) => {
         password: values.password,
       })
       .then((response) => {
-        const authenticated = response && response.user && response.token;
+        const authenticated =
+          response && response.userData && response.tokenData;
         if (authenticated) {
           login(response);
           setCookie(COOKIES.AUTH_REMEMBER_ME, values.remember);

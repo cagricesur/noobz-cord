@@ -13,14 +13,7 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ErrorRouteImport } from './routes/error'
 import { Route as ActivationRouteImport } from './routes/activation'
-import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ProtectedSettingsRouteImport } from './routes/_protected/settings'
-import { Route as ProtectedDashboardRouteImport } from './routes/_protected/dashboard'
-import { Route as ProtectedAdminRouteImport } from './routes/_protected/admin'
-import { Route as ProtectedAdminIndexRouteImport } from './routes/_protected/admin/index'
-import { Route as ProtectedAdminTranslationsRouteImport } from './routes/_protected/admin/translations'
-import { Route as ProtectedAdminCacheRouteImport } from './routes/_protected/admin/cache'
 
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
@@ -42,45 +35,10 @@ const ActivationRoute = ActivationRouteImport.update({
   path: '/activation',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProtectedRoute = ProtectedRouteImport.update({
-  id: '/_protected',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any)
-const ProtectedSettingsRoute = ProtectedSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => ProtectedRoute,
-} as any)
-const ProtectedDashboardRoute = ProtectedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => ProtectedRoute,
-} as any)
-const ProtectedAdminRoute = ProtectedAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => ProtectedRoute,
-} as any)
-const ProtectedAdminIndexRoute = ProtectedAdminIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => ProtectedAdminRoute,
-} as any)
-const ProtectedAdminTranslationsRoute =
-  ProtectedAdminTranslationsRouteImport.update({
-    id: '/translations',
-    path: '/translations',
-    getParentRoute: () => ProtectedAdminRoute,
-  } as any)
-const ProtectedAdminCacheRoute = ProtectedAdminCacheRouteImport.update({
-  id: '/cache',
-  path: '/cache',
-  getParentRoute: () => ProtectedAdminRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -89,12 +47,6 @@ export interface FileRoutesByFullPath {
   '/error': typeof ErrorRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/admin': typeof ProtectedAdminRouteWithChildren
-  '/dashboard': typeof ProtectedDashboardRoute
-  '/settings': typeof ProtectedSettingsRoute
-  '/admin/cache': typeof ProtectedAdminCacheRoute
-  '/admin/translations': typeof ProtectedAdminTranslationsRoute
-  '/admin/': typeof ProtectedAdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -102,72 +54,25 @@ export interface FileRoutesByTo {
   '/error': typeof ErrorRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/dashboard': typeof ProtectedDashboardRoute
-  '/settings': typeof ProtectedSettingsRoute
-  '/admin/cache': typeof ProtectedAdminCacheRoute
-  '/admin/translations': typeof ProtectedAdminTranslationsRoute
-  '/admin': typeof ProtectedAdminIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_protected': typeof ProtectedRouteWithChildren
   '/activation': typeof ActivationRoute
   '/error': typeof ErrorRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/_protected/admin': typeof ProtectedAdminRouteWithChildren
-  '/_protected/dashboard': typeof ProtectedDashboardRoute
-  '/_protected/settings': typeof ProtectedSettingsRoute
-  '/_protected/admin/cache': typeof ProtectedAdminCacheRoute
-  '/_protected/admin/translations': typeof ProtectedAdminTranslationsRoute
-  '/_protected/admin/': typeof ProtectedAdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/activation'
-    | '/error'
-    | '/login'
-    | '/register'
-    | '/admin'
-    | '/dashboard'
-    | '/settings'
-    | '/admin/cache'
-    | '/admin/translations'
-    | '/admin/'
+  fullPaths: '/' | '/activation' | '/error' | '/login' | '/register'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/activation'
-    | '/error'
-    | '/login'
-    | '/register'
-    | '/dashboard'
-    | '/settings'
-    | '/admin/cache'
-    | '/admin/translations'
-    | '/admin'
-  id:
-    | '__root__'
-    | '/'
-    | '/_protected'
-    | '/activation'
-    | '/error'
-    | '/login'
-    | '/register'
-    | '/_protected/admin'
-    | '/_protected/dashboard'
-    | '/_protected/settings'
-    | '/_protected/admin/cache'
-    | '/_protected/admin/translations'
-    | '/_protected/admin/'
+  to: '/' | '/activation' | '/error' | '/login' | '/register'
+  id: '__root__' | '/' | '/activation' | '/error' | '/login' | '/register'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ProtectedRoute: typeof ProtectedRouteWithChildren
   ActivationRoute: typeof ActivationRoute
   ErrorRoute: typeof ErrorRoute
   LoginRoute: typeof LoginRoute
@@ -204,13 +109,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ActivationRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_protected': {
-      id: '/_protected'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof ProtectedRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -218,86 +116,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_protected/settings': {
-      id: '/_protected/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof ProtectedSettingsRouteImport
-      parentRoute: typeof ProtectedRoute
-    }
-    '/_protected/dashboard': {
-      id: '/_protected/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof ProtectedDashboardRouteImport
-      parentRoute: typeof ProtectedRoute
-    }
-    '/_protected/admin': {
-      id: '/_protected/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof ProtectedAdminRouteImport
-      parentRoute: typeof ProtectedRoute
-    }
-    '/_protected/admin/': {
-      id: '/_protected/admin/'
-      path: '/'
-      fullPath: '/admin/'
-      preLoaderRoute: typeof ProtectedAdminIndexRouteImport
-      parentRoute: typeof ProtectedAdminRoute
-    }
-    '/_protected/admin/translations': {
-      id: '/_protected/admin/translations'
-      path: '/translations'
-      fullPath: '/admin/translations'
-      preLoaderRoute: typeof ProtectedAdminTranslationsRouteImport
-      parentRoute: typeof ProtectedAdminRoute
-    }
-    '/_protected/admin/cache': {
-      id: '/_protected/admin/cache'
-      path: '/cache'
-      fullPath: '/admin/cache'
-      preLoaderRoute: typeof ProtectedAdminCacheRouteImport
-      parentRoute: typeof ProtectedAdminRoute
-    }
   }
 }
 
-interface ProtectedAdminRouteChildren {
-  ProtectedAdminCacheRoute: typeof ProtectedAdminCacheRoute
-  ProtectedAdminTranslationsRoute: typeof ProtectedAdminTranslationsRoute
-  ProtectedAdminIndexRoute: typeof ProtectedAdminIndexRoute
-}
-
-const ProtectedAdminRouteChildren: ProtectedAdminRouteChildren = {
-  ProtectedAdminCacheRoute: ProtectedAdminCacheRoute,
-  ProtectedAdminTranslationsRoute: ProtectedAdminTranslationsRoute,
-  ProtectedAdminIndexRoute: ProtectedAdminIndexRoute,
-}
-
-const ProtectedAdminRouteWithChildren = ProtectedAdminRoute._addFileChildren(
-  ProtectedAdminRouteChildren,
-)
-
-interface ProtectedRouteChildren {
-  ProtectedAdminRoute: typeof ProtectedAdminRouteWithChildren
-  ProtectedDashboardRoute: typeof ProtectedDashboardRoute
-  ProtectedSettingsRoute: typeof ProtectedSettingsRoute
-}
-
-const ProtectedRouteChildren: ProtectedRouteChildren = {
-  ProtectedAdminRoute: ProtectedAdminRouteWithChildren,
-  ProtectedDashboardRoute: ProtectedDashboardRoute,
-  ProtectedSettingsRoute: ProtectedSettingsRoute,
-}
-
-const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(
-  ProtectedRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ProtectedRoute: ProtectedRouteWithChildren,
   ActivationRoute: ActivationRoute,
   ErrorRoute: ErrorRoute,
   LoginRoute: LoginRoute,

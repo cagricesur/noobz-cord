@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using NC.Entities.Models;
 using NC.Models;
 using NC.Models.Contracts;
@@ -10,47 +9,12 @@ using NC.Models.Definitions;
 using NC.Models.Settings;
 using NC.Utils;
 using NC.Utils.Helpers;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 using System.Text.Json;
 
 namespace NC.Services
 {
-    public class UserService(NoobzCordContext context, ITranslationService translationService, IHttpContextService httpContextService, IOptions<JwtSettings> jwtSettings, IOptions<SmtpSettings> smtpSettings) : IUserService
+    public class UserService(NoobzCordContext context, ITokenService tokenService, ITranslationService translationService, IHttpContextService httpContextService, IOptions<SmtpSettings> smtpSettings) : IUserService
     {
-
-        private static string GenerateActivationCode(int length)
-        {
-            var pins = new List<int>();
-            var random = new Random();
-            for (int i = 0; i < length; i++)
-            {
-                pins.Add(random.Next(i == 0 ? 1 : 0, 10));
-            }
-            return string.Join("", pins);
-        }
-        private string GenerateJwt(User user)
-        {
-            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Value.Secret));
-            var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
-
-            var claims = new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.ID.ToString()),
-                new Claim(ClaimTypes.Name, user.Name),
-                new Claim(ClaimTypes.Role, user.Role.ToEnum<UserRoleEnum>().ToString()),
-            };
-
-            var token = new JwtSecurityToken(
-                jwtSettings.Value.Issuer,
-                jwtSettings.Value.Audience,
-                claims,
-                expires: DateTime.UtcNow.AddSeconds(jwtSettings.Value.Expiration),
-                signingCredentials: credentials);
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
         public async Task<RegistrationResponse> Register(RegistrationRequest request, CancellationToken cancellationToken)
         {
             var response = new RegistrationResponse();
@@ -61,11 +25,7 @@ namespace NC.Services
             }
             else
             {
-                var tokenData = new ActivationTokenData()
-                {
-                    Pin = GenerateActivationCode(6)
-                };
-
+                var tokenData = tokenService.CreateActivationToken();
                 var user = new User()
                 {
                     Contact = request.Contact,
@@ -135,6 +95,7 @@ namespace NC.Services
                         {
                             user.Status = UserStatusEnum.Active.ToByte();
                             token.Status = TokenStatusEnum.Passive.ToByte();
+                            token.UsedOn = DateTime.UtcNow;
                             await context.SaveChangesAsync(cancellationToken);
                             response.SetSuccess();
                         }
@@ -147,14 +108,15 @@ namespace NC.Services
         {
             var response = new LoginResponse();
 
-            var q = await context.Users
+            var user = await context.Users
                                  .Include(entity => entity.UserPassword)
                                  .FirstOrDefaultAsync(entity => entity.Contact == request.Contact, cancellationToken);
 
-            if(q != null && q.UserPassword != null && HashHelper.Verify(request.Password, q.UserPassword.Hash))
+            if(user != null && user.UserPassword != null && HashHelper.Verify(request.Password, user.UserPassword.Hash))
             {
-                response.Token = GenerateJwt(q);
-                response.User = new UserData() { Name = q.Name };
+                var userRole = user.Role.ToEnum<UserRoleEnum>();
+                response.TokenData = await tokenService.CreateJwtToken(user.ID, user.Name, userRole, cancellationToken);
+                response.UserData = new UserData() { Name = user.Name, Role = userRole };
             }
             else
             {
@@ -165,9 +127,18 @@ namespace NC.Services
         }
 
         
-        public async Task<Guid?> GetUserID(string name, CancellationToken cancellationToken)
+        public async Task<UserData?> GetUser(Guid userID, CancellationToken cancellationToken)
         {
-            return (await context.Users.FirstOrDefaultAsync(entity => entity.Name == name, cancellationToken))?.ID;
+            var user = await context.Users.FirstOrDefaultAsync(entity => entity.ID == userID, cancellationToken);
+            if (user != null)
+            {
+                return new UserData() { Name = user.Name, Role = user.Role.ToEnum<UserRoleEnum>() };
+
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 }

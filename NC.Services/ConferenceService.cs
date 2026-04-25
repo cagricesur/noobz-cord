@@ -14,13 +14,13 @@ namespace NC.Services
 {
     public class ConferenceService(IUserService userService, IOptions<LiveKitSettings> liveKitSettings) : IConferenceService
     {
-        public async Task<ConferenceResponse> Join(ConferenceRequest request, CancellationToken cancellationToken)
+        public async Task<ConferenceResponse> Join(ConferenceRequest request, Guid userID, CancellationToken cancellationToken)
         {
             var response = new ConferenceResponse();
 
-            var userID = await userService.GetUserID(request.Name, cancellationToken);
+            var user = await userService.GetUser(userID, cancellationToken);
 
-            if (userID == null)
+            if (user == null)
             {
                 response.SetError(StatusCodes.Status404NotFound, "ERROR.USERNOTFOUND");
             }
@@ -45,7 +45,7 @@ namespace NC.Services
                     {
                         { JwtRegisteredClaimNames.Iss, liveKitSettings.Value.ApiKey },
                         { JwtRegisteredClaimNames.Sub, userID},
-                        { JwtRegisteredClaimNames.Name, request.Name },
+                        { JwtRegisteredClaimNames.Name, user.Name },
                         { JwtRegisteredClaimNames.Nbf, nbf.ToUnixTimeSeconds() },
                         { JwtRegisteredClaimNames.Exp, exp.ToUnixTimeSeconds() },
                         { "video", videoGrant },

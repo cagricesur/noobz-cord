@@ -16,13 +16,11 @@ public class ConferenceController(IConferenceService conferenceService) : Servic
     [ProducesResponseType<ServiceError>(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Join(CancellationToken cancellationToken)
     {
-        var claim = User.Claims.FirstOrDefault(entity => entity.Type == ClaimTypes.Name);
-
-        var request = new ConferenceRequest()
+        var claim = User.Claims.FirstOrDefault(entity => entity.Type == ClaimTypes.NameIdentifier);
+        if (claim != null && Guid.TryParse(claim.Value, out var userId))
         {
-            Name = claim?.Value ?? "Unknown"
-        };
-        var response = await conferenceService.Join(request, cancellationToken);
-        return response.ToControllerResponse();
+            return (await conferenceService.Join(new ConferenceRequest(), userId, cancellationToken)).ToControllerResponse();
+        }
+        return BadRequest(new ServiceError { Code = "ERROR.CONFERENCECONTROLLER.JOIN.INVADLIDREQUEST" });
     }
 }

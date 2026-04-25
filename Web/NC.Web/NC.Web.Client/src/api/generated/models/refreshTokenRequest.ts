@@ -4,9 +4,7 @@
  * NC.Web.Server | v1
  * OpenAPI spec version: 1.0.0
  */
-import type { UserRoleEnum } from "./userRoleEnum";
 
-export interface UserData {
-  name: string;
-  role: UserRoleEnum;
+export interface RefreshTokenRequest {
+  refreshToken: string;
 }

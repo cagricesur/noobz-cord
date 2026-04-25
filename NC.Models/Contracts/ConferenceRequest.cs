@@ -2,6 +2,6 @@
 {
     public class ConferenceRequest
     {
-        public required string Name { get; set; }
+   
     }
 }

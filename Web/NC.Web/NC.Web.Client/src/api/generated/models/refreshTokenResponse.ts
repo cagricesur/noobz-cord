@@ -5,9 +5,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { JwtTokenData } from "./jwtTokenData";
-import type { UserData } from "./userData";
 
-export interface LoginResponse {
-  userData?: null | UserData;
+export interface RefreshTokenResponse {
   tokenData?: null | JwtTokenData;
 }

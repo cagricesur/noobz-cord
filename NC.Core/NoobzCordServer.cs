@@ -39,6 +39,7 @@ namespace NC.Core
             builder.Services
                     .AddSingleton<ICacheService, CacheService>()
                     .AddScoped<IUserService, UserService>()
+                    .AddScoped<ITokenService, TokenService>()
                     .AddScoped<IConferenceService, ConferenceService>()
                     .AddScoped<ITranslationService, TranslationService>()
                     .AddScoped<IHttpContextService, HttpContextService>();

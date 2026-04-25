@@ -1,4 +1,5 @@
 ﻿using NC.Models.Contracts;
+using NC.Models.Data;
 
 namespace NC.Models.Definitions
 {
@@ -7,7 +8,7 @@ namespace NC.Models.Definitions
         Task<RegistrationResponse> Register(RegistrationRequest request, CancellationToken cancellationToken);
         Task<ActivationResponse> Activate(ActivationRequest request, CancellationToken cancellationToken);
         Task<LoginResponse> Login(LoginRequest request, CancellationToken cancellationToken);
-        Task<Guid?> GetUserID(string name, CancellationToken cancellationToken);
+        Task<UserData?> GetUser(Guid userID, CancellationToken cancellationToken);
 
     }
 }
