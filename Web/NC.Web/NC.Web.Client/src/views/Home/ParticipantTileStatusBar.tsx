@@ -16,10 +16,18 @@ const iconSize = 16;
 
 export const ParticipantTileStatusBar: React.FunctionComponent<
   IParticipantTileStatus
-> = ({ micOn, deafened, cameraOn, screenShareOn }) => {
+> = ({ speaking, micOn, deafened, cameraOn, screenShareOn }) => {
   return (
     <div className={classes.tileStatusBar}>
       <Group gap="sm" justify="center" wrap="nowrap">
+        <Tooltip label={speaking ? "Speaking" : "Not speaking"}>
+          <span
+            className={`${classes.tileSpeakingIndicator} ${
+              speaking ? classes.tileSpeakingActive : ""
+            }`}
+            aria-label={speaking ? "Speaking" : "Not speaking"}
+          />
+        </Tooltip>
         <Tooltip label={micOn ? "Microphone on" : "Microphone muted"}>
           <span className={classes.tileStatusIcon}>
             {micOn ? (

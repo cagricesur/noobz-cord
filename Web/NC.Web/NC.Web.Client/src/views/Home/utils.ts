@@ -14,6 +14,7 @@ export const tileStatusFor = (
 ): IParticipantTileStatus => {
   const deafened = p.isLocal ? localDeafened : p.attributes.nc_deafened === "1";
   return {
+    speaking: p.isSpeaking,
     micOn: p.isMicrophoneEnabled,
     deafened,
     cameraOn: p.isCameraEnabled,
