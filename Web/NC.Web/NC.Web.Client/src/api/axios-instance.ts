@@ -93,7 +93,6 @@ const refreshJwtToken = () => {
 
 AXIOS_INSTANCE.interceptors.request.use(
   async (config) => {
-    debugger;
     const authState = useAuthStore.getState();
     let token = authState.info?.tokenData?.token;
 

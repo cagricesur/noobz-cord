@@ -15,6 +15,7 @@ import {
   Text,
   TextInput,
   Tooltip,
+  Image,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import {
@@ -59,6 +60,7 @@ import {
 import { initials, sortParticipants, tileStatusFor } from "./utils";
 import { VideoTile } from "./VideoTile";
 
+import logo from "@noobz-cord/assets/logo.png";
 import classes from "./index.module.scss";
 
 const HomeView: React.FunctionComponent = () => {
@@ -414,7 +416,7 @@ const HomeView: React.FunctionComponent = () => {
       <AppShell
         className={classes.shellRoot}
         padding={0}
-        header={{ height: 56 }}
+        header={{ height: 64 }}
         footer={{ height: { base: 120, sm: 88 } }}
       >
         <AppShell.Header className={classes.header}>
@@ -424,7 +426,11 @@ const HomeView: React.FunctionComponent = () => {
             style={{ width: "100%" }}
           >
             <Group gap="sm">
-              <Text fw={600}>{roomLabel ?? "Meeting"}</Text>
+              <Group>
+                <Image src={logo} h={32} w={32} />
+                <Text fw={600}>{roomLabel ?? "Meeting"}</Text>
+              </Group>
+
               <Badge variant="light" color="gray" size="sm">
                 {connLabel}
               </Badge>
@@ -443,6 +449,7 @@ const HomeView: React.FunctionComponent = () => {
             />
           ) : (
             <Tabs
+              variant="pills"
               value={resolvedMainTab}
               onChange={(v) => v && setMainTab(v)}
               classNames={{
@@ -455,16 +462,18 @@ const HomeView: React.FunctionComponent = () => {
               style={{ minHeight: 0 }}
             >
               <Tabs.List>
-                <Tabs.Tab value="gallery">Meeting</Tabs.Tab>
+                <Tabs.Tab value="gallery">
+                  <Group>
+                    <Image src={logo} h={32} w={32} />
+                    <Text>Meeting</Text>
+                  </Group>
+                </Tabs.Tab>
                 {screenShares.map(({ participant }) => (
                   <Tabs.Tab
                     key={`ss-tab-${participant.identity}`}
                     value={`ss-${participant.identity}`}
                   >
-                    {(participant.name || participant.identity).length > 28
-                      ? `${(participant.name || participant.identity).slice(0, 26)}…`
-                      : participant.name || participant.identity}{" "}
-                    — Screen
+                    {`${participant.name || participant.identity}'s Screen`}
                   </Tabs.Tab>
                 ))}
               </Tabs.List>
@@ -509,9 +518,6 @@ const HomeView: React.FunctionComponent = () => {
               <ActionIcon
                 size={52}
                 radius="xl"
-                variant={
-                  room.localParticipant.isMicrophoneEnabled ? "filled" : "light"
-                }
                 color={
                   room.localParticipant.isMicrophoneEnabled ? "dark" : "red"
                 }
@@ -527,6 +533,25 @@ const HomeView: React.FunctionComponent = () => {
 
             <Tooltip
               label={
+                deafened ? "Undeafen (hear others)" : "Deafen (hear no one)"
+              }
+            >
+              <ActionIcon
+                size={52}
+                radius="xl"
+                color={deafened ? "orange" : "dark"}
+                onClick={() => setDeafened((d) => !d)}
+              >
+                {deafened ? (
+                  <IconHeadphonesOff size={22} />
+                ) : (
+                  <IconHeadphones size={22} />
+                )}
+              </ActionIcon>
+            </Tooltip>
+
+            <Tooltip
+              label={
                 room.localParticipant.isCameraEnabled
                   ? "Stop video"
                   : "Start video"
@@ -535,9 +560,6 @@ const HomeView: React.FunctionComponent = () => {
               <ActionIcon
                 size={52}
                 radius="xl"
-                variant={
-                  room.localParticipant.isCameraEnabled ? "filled" : "light"
-                }
                 color={room.localParticipant.isCameraEnabled ? "dark" : "red"}
                 onClick={() => void toggleCamera()}
               >
@@ -545,26 +567,6 @@ const HomeView: React.FunctionComponent = () => {
                   <IconVideo size={22} />
                 ) : (
                   <IconVideoOff size={22} />
-                )}
-              </ActionIcon>
-            </Tooltip>
-
-            <Tooltip
-              label={
-                deafened ? "Undeafen (hear others)" : "Deafen (hear no one)"
-              }
-            >
-              <ActionIcon
-                size={52}
-                radius="xl"
-                variant={deafened ? "filled" : "light"}
-                color={deafened ? "orange" : "dark"}
-                onClick={() => setDeafened((d) => !d)}
-              >
-                {deafened ? (
-                  <IconHeadphonesOff size={22} />
-                ) : (
-                  <IconHeadphones size={22} />
                 )}
               </ActionIcon>
             </Tooltip>
@@ -579,11 +581,6 @@ const HomeView: React.FunctionComponent = () => {
               <ActionIcon
                 size={52}
                 radius="xl"
-                variant={
-                  room.localParticipant.isScreenShareEnabled
-                    ? "filled"
-                    : "light"
-                }
                 color={
                   room.localParticipant.isScreenShareEnabled ? "teal" : "dark"
                 }

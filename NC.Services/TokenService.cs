@@ -48,7 +48,7 @@ namespace NC.Services
                 jwtSettings.Value.Issuer,
                 jwtSettings.Value.Audience,
                 claims,
-                expires,
+                expires: expires,
                 signingCredentials: credentials);
             var jwtToken = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
 
