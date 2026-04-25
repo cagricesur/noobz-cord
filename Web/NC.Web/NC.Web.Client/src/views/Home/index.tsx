@@ -6,6 +6,7 @@ import {
   Button,
   Drawer,
   Group,
+  Image,
   Modal,
   ScrollArea,
   Slider,
@@ -15,7 +16,6 @@ import {
   Text,
   TextInput,
   Tooltip,
-  Image,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import {
@@ -25,6 +25,7 @@ import {
   IconMessage,
   IconMicrophone,
   IconMicrophoneOff,
+  IconPhoneOff,
   IconScreenShare,
   IconSettings,
   IconUsers,
@@ -61,6 +62,8 @@ import { initials, sortParticipants, tileStatusFor } from "./utils";
 import { VideoTile } from "./VideoTile";
 
 import logo from "@noobz-cord/assets/logo.png";
+import { useAuthStore } from "@noobz-cord/stores";
+import { getRouteApi } from "@tanstack/react-router";
 import classes from "./index.module.scss";
 
 const devicePermissionMessage = (
@@ -149,6 +152,16 @@ const HomeView: React.FunctionComponent = () => {
   const [camOn, setCamOn] = useState(true);
   /** When true, apply selected speaker on join; when false, join deafened until undeafen. */
   const [customAudioOutputOn, setCustomAudioOutputOn] = useState(true);
+  const signOut = useAuthStore((state) => state.logout);
+  const authenticated = useAuthStore((state) => state.authenticated);
+  const routeApi = getRouteApi("/");
+  const nav = routeApi.useNavigate();
+
+  useEffect(() => {
+    if (!authenticated) {
+      nav({ to: "/login" });
+    }
+  }, [authenticated, nav]);
 
   useEffect(() => {
     if (room) return;
@@ -710,6 +723,19 @@ const HomeView: React.FunctionComponent = () => {
                 variant="filled"
                 color="red"
                 onClick={() => disconnect()}
+              >
+                <IconPhoneOff size={22} />
+              </ActionIcon>
+            </Tooltip>
+
+            <Tooltip label="Sign Out">
+              <ActionIcon
+                className={classes.leaveBtn}
+                size={52}
+                radius="xl"
+                variant="filled"
+                color="red"
+                onClick={() => signOut()}
               >
                 <IconLogout size={22} />
               </ActionIcon>

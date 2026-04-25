@@ -14,7 +14,9 @@ import classes from "./index.module.scss";
 
 const iconSize = 16;
 
-const networkQualityLabel = (quality: IParticipantTileStatus["connectionQuality"]) => {
+const networkQualityLabel = (
+  quality: IParticipantTileStatus["connectionQuality"],
+) => {
   const normalized = String(quality).toLowerCase();
   if (normalized === "excellent") return "Excellent";
   if (normalized === "good") return "Good";
@@ -34,18 +36,12 @@ const networkQualityClass = (
 
 export const ParticipantTileStatusBar: React.FunctionComponent<
   IParticipantTileStatus
-> = ({
-  connectionQuality,
-  micOn,
-  deafened,
-  cameraOn,
-  screenShareOn,
-}) => {
+> = ({ connectionQuality, micOn, deafened, cameraOn, screenShareOn }) => {
   const networkLabel = networkQualityLabel(connectionQuality);
 
   return (
-    <div className={classes.tileStatusBar}>
-      <Group gap="sm" justify="center" wrap="nowrap">
+    <Group justify="space-between" p="xs" bg="black">
+      <Group>
         <Tooltip label={`Network quality: ${networkLabel}`}>
           <span
             className={`${classes.tileNetworkIndicator} ${networkQualityClass(
@@ -58,6 +54,8 @@ export const ParticipantTileStatusBar: React.FunctionComponent<
             <span />
           </span>
         </Tooltip>
+      </Group>
+      <Group gap="sm">
         <Tooltip label={micOn ? "Microphone on" : "Microphone muted"}>
           <span className={classes.tileStatusIcon}>
             {micOn ? (
@@ -107,6 +105,6 @@ export const ParticipantTileStatusBar: React.FunctionComponent<
           </span>
         </Tooltip>
       </Group>
-    </div>
+    </Group>
   );
 };
