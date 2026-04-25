@@ -44,7 +44,9 @@ export const ParticipantGrid: React.FunctionComponent<
       return (
         <Paper
           key={p.identity}
-          className={classes.placeholderTile}
+          className={`${classes.placeholderTile} ${
+            status.speaking ? classes.participantTileSpeaking : ""
+          }`}
           p={0}
           radius="md"
         >

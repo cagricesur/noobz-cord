@@ -35,7 +35,6 @@ const networkQualityClass = (
 export const ParticipantTileStatusBar: React.FunctionComponent<
   IParticipantTileStatus
 > = ({
-  speaking,
   connectionQuality,
   micOn,
   deafened,
@@ -47,14 +46,6 @@ export const ParticipantTileStatusBar: React.FunctionComponent<
   return (
     <div className={classes.tileStatusBar}>
       <Group gap="sm" justify="center" wrap="nowrap">
-        <Tooltip label={speaking ? "Speaking" : "Not speaking"}>
-          <span
-            className={`${classes.tileSpeakingIndicator} ${
-              speaking ? classes.tileSpeakingActive : ""
-            }`}
-            aria-label={speaking ? "Speaking" : "Not speaking"}
-          />
-        </Tooltip>
         <Tooltip label={`Network quality: ${networkLabel}`}>
           <span
             className={`${classes.tileNetworkIndicator} ${networkQualityClass(

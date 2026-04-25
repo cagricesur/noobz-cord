@@ -138,6 +138,7 @@
   border-radius: rem(8);
   overflow: hidden;
   background: #1f1f24;
+  border: 2px solid transparent;
 }
 
 .videoTileMedia {
@@ -158,6 +159,7 @@
   background: #000;
   display: flex;
   flex-direction: column;
+  border: 2px solid transparent;
 }
 
 .videoTileMediaFill {
@@ -222,19 +224,11 @@
   line-height: 0;
 }
 
-.tileSpeakingIndicator {
-  width: rem(10);
-  height: rem(10);
-  border-radius: 50%;
-  background: rgba(244, 244, 245, 0.32);
-  box-shadow: 0 0 0 1px rgba(244, 244, 245, 0.12);
-}
-
-.tileSpeakingActive {
-  background: #22c55e;
+.participantTileSpeaking {
+  border-color: #22c55e;
   box-shadow:
     0 0 0 1px rgba(34, 197, 94, 0.28),
-    0 0 rem(10) rgba(34, 197, 94, 0.9);
+    0 0 rem(14) rgba(34, 197, 94, 0.75);
 }
 
 .tileNetworkIndicator {
@@ -313,7 +307,7 @@
   border-radius: rem(8);
   overflow: hidden;
   background: linear-gradient(145deg, #25252c, #1a1a20);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 2px solid transparent;
 }
 
 .placeholderTileMain {

@@ -39,12 +39,13 @@ export const VideoTile: React.FunctionComponent<IVideoTileProps> = ({
 
   const rootClass =
     variant === "fill" ? classes.videoTileFill : classes.videoTile;
+  const tileClass = `${rootClass} ${status?.speaking ? classes.participantTileSpeaking : ""}`;
   const mediaClass =
     variant === "fill" ? classes.videoTileMediaFill : classes.videoTileMedia;
   const videoClass = variant === "fill" ? classes.videoElFill : classes.videoEl;
 
   return (
-    <div className={rootClass}>
+    <div className={tileClass}>
       <div className={mediaClass}>
         <video
           ref={ref}
