@@ -15,6 +15,7 @@ export const tileStatusFor = (
   const deafened = p.isLocal ? localDeafened : p.attributes.nc_deafened === "1";
   return {
     speaking: p.isSpeaking,
+    connectionQuality: p.connectionQuality,
     micOn: p.isMicrophoneEnabled,
     deafened,
     cameraOn: p.isCameraEnabled,

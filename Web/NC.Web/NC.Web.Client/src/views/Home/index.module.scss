@@ -237,6 +237,60 @@
     0 0 rem(10) rgba(34, 197, 94, 0.9);
 }
 
+.tileNetworkIndicator {
+  display: inline-flex;
+  align-items: end;
+  gap: rem(2);
+  height: rem(14);
+
+  span {
+    width: rem(3);
+    border-radius: rem(2);
+    background: currentColor;
+    opacity: 0.35;
+  }
+
+  span:nth-child(1) {
+    height: rem(5);
+  }
+
+  span:nth-child(2) {
+    height: rem(9);
+  }
+
+  span:nth-child(3) {
+    height: rem(13);
+  }
+}
+
+.tileNetworkExcellent {
+  color: #22c55e;
+
+  span {
+    opacity: 1;
+  }
+}
+
+.tileNetworkGood {
+  color: #facc15;
+
+  span:nth-child(-n + 2) {
+    opacity: 1;
+  }
+}
+
+.tileNetworkPoor {
+  color: #f87171;
+
+  span:nth-child(1) {
+    opacity: 1;
+  }
+}
+
+.tileNetworkUnknown {
+  color: rgba(244, 244, 245, 0.72);
+}
+
 .tileStatusWarn {
   color: #f87171;
 }

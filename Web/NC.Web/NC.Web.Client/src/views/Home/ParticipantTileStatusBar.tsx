@@ -14,9 +14,36 @@ import classes from "./index.module.scss";
 
 const iconSize = 16;
 
+const networkQualityLabel = (quality: IParticipantTileStatus["connectionQuality"]) => {
+  const normalized = String(quality).toLowerCase();
+  if (normalized === "excellent") return "Excellent";
+  if (normalized === "good") return "Good";
+  if (normalized === "poor") return "Poor";
+  return "Unknown";
+};
+
+const networkQualityClass = (
+  quality: IParticipantTileStatus["connectionQuality"],
+) => {
+  const normalized = String(quality).toLowerCase();
+  if (normalized === "excellent") return classes.tileNetworkExcellent;
+  if (normalized === "good") return classes.tileNetworkGood;
+  if (normalized === "poor") return classes.tileNetworkPoor;
+  return classes.tileNetworkUnknown;
+};
+
 export const ParticipantTileStatusBar: React.FunctionComponent<
   IParticipantTileStatus
-> = ({ speaking, micOn, deafened, cameraOn, screenShareOn }) => {
+> = ({
+  speaking,
+  connectionQuality,
+  micOn,
+  deafened,
+  cameraOn,
+  screenShareOn,
+}) => {
+  const networkLabel = networkQualityLabel(connectionQuality);
+
   return (
     <div className={classes.tileStatusBar}>
       <Group gap="sm" justify="center" wrap="nowrap">
@@ -27,6 +54,18 @@ export const ParticipantTileStatusBar: React.FunctionComponent<
             }`}
             aria-label={speaking ? "Speaking" : "Not speaking"}
           />
+        </Tooltip>
+        <Tooltip label={`Network quality: ${networkLabel}`}>
+          <span
+            className={`${classes.tileNetworkIndicator} ${networkQualityClass(
+              connectionQuality,
+            )}`}
+            aria-label={`Network quality: ${networkLabel}`}
+          >
+            <span />
+            <span />
+            <span />
+          </span>
         </Tooltip>
         <Tooltip label={micOn ? "Microphone on" : "Microphone muted"}>
           <span className={classes.tileStatusIcon}>

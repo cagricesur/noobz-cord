@@ -315,6 +315,7 @@ export function useLiveKitConference() {
         r.on(RoomEvent.TrackMuted, onActivity);
         r.on(RoomEvent.TrackUnmuted, onActivity);
         r.on(RoomEvent.ActiveSpeakersChanged, onActivity);
+        r.on(RoomEvent.ConnectionQualityChanged, onActivity);
         r.on(RoomEvent.ConnectionStateChanged, onActivity);
         r.on(RoomEvent.ParticipantAttributesChanged, onActivity);
 
