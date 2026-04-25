@@ -79,16 +79,27 @@ namespace NC.Services
             if (jwtToken != null)
             {
                 jwtToken = jwtToken.Split("Bearer").Last().Trim();
-                var user = await context.Users.FirstOrDefaultAsync(entity => entity.ID == userID, cancellationToken);
                 var token = await context.Tokens.FirstOrDefaultAsync(entity => entity.ID == request.RefreshToken, cancellationToken);
-                if (user != null && token != null && token.UserID == userID && token.Status == TokenStatusEnum.Active.ToByte() && token.Data == jwtToken)
+                if (token != null &&  token.Status == TokenStatusEnum.Active.ToByte())
                 {
-                    token.UsedOn = DateTime.UtcNow;
-                    token.Status = TokenStatusEnum.Passive.ToByte();
-                    await context.SaveChangesAsync(cancellationToken);
+                    if (token.Expires < DateTime.UtcNow)
+                    {
+                        token.Status = TokenStatusEnum.Expired.ToByte();
+                        await context.SaveChangesAsync(cancellationToken);
+                    }
+                    else if(token.UserID == userID && token.Data == jwtToken)
+                    {
+                        var user = await context.Users.FirstOrDefaultAsync(entity => entity.ID == userID, cancellationToken);
+                        if (user != null)
+                        {
+                            token.UsedOn = DateTime.UtcNow;
+                            token.Status = TokenStatusEnum.Passive.ToByte();
+                            await context.SaveChangesAsync(cancellationToken);
 
-                    response.TokenData = await CreateJwtToken(userID, user.Name, user.Role.ToEnum<UserRoleEnum>(), cancellationToken);
-                    response.SetSuccess();
+                            response.TokenData = await CreateJwtToken(userID, user.Name, user.Role.ToEnum<UserRoleEnum>(), cancellationToken);
+                            response.SetSuccess();
+                        }
+                    }
                 }
             }
             return response;

@@ -4,6 +4,7 @@ import { create } from "zustand";
 export const useAuthStore = create<IAuthStoreState>((set) => ({
   authenticated: false,
   login(info) {
+    debugger;
     const { userData, tokenData, ...rest } = info;
     const authenticated = userData && tokenData ? true : false;
     set({

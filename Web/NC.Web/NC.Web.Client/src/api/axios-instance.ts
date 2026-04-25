@@ -93,6 +93,7 @@ const refreshJwtToken = () => {
 
 AXIOS_INSTANCE.interceptors.request.use(
   async (config) => {
+    debugger;
     const authState = useAuthStore.getState();
     let token = authState.info?.tokenData?.token;
 
@@ -139,7 +140,10 @@ AXIOS_INSTANCE.interceptors.response.use(
       return AXIOS_INSTANCE(originalRequest);
     }
 
-    if (error.response?.status === 401 && useAuthStore.getState().authenticated) {
+    if (
+      error.response?.status === 401 &&
+      useAuthStore.getState().authenticated
+    ) {
       useAuthStore.getState().logout();
     }
 
