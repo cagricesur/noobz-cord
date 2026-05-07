@@ -8,6 +8,6 @@ namespace NC.Models.Definitions
         ActivationTokenData CreateActivationToken();
         Task<JwtTokenData> CreateJwtToken(Guid userID, string userName, UserRoleEnum userRole, CancellationToken cancellationToken);
 
-        Task<RefreshTokenResponse> RefreshJwtToken(RefreshTokenRequest request, Guid userID, string? jwtToken, CancellationToken cancellationToken);
+        Task<RefreshTokenResponse> RefreshJwtToken(RefreshTokenRequest request, string? jwtToken, CancellationToken cancellationToken);
     }
 }

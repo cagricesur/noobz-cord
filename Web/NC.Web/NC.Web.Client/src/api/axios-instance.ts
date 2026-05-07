@@ -41,11 +41,12 @@ const refreshJwtToken = () => {
   }
 
   const authState = useAuthStore.getState();
+  const accessToken = authState.info?.tokenData?.token;
   const refreshToken = authState.info?.tokenData?.refreshToken;
 
-  if (!refreshToken) {
+  if (!accessToken || !refreshToken) {
     authState.logout();
-    return Promise.reject(new Error("Missing refresh token."));
+    return Promise.reject(new Error("Missing token data."));
   }
 
   refreshTokenPromise = Axios.post<RefreshTokenResponse>(
@@ -54,6 +55,7 @@ const refreshJwtToken = () => {
     {
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
         [HTTPHEADERS.Language]: i18n.language,
       },
     },

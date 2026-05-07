@@ -18,6 +18,8 @@ namespace NC.Services
 {
     public class TokenService(NoobzCordContext context, IOptions<JwtSettings> jwtSettings) : ITokenService
     {
+        private const string BearerPrefix = "Bearer ";
+
         private static string GenerateActivationCode(int length)
         {
             var pins = new List<int>();
@@ -28,6 +30,46 @@ namespace NC.Services
             }
             return string.Join("", pins);
         }
+
+        private ClaimsPrincipal? GetPrincipalFromExpiredToken(string? authorization, out string? jwtToken)
+        {
+            jwtToken = null;
+
+            if (string.IsNullOrWhiteSpace(authorization) || !authorization.StartsWith(BearerPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            jwtToken = authorization[BearerPrefix.Length..].Trim();
+            var tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Value.Secret)),
+                ValidIssuer = jwtSettings.Value.Issuer,
+                ValidAudience = jwtSettings.Value.Audience,
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = false,
+                ClockSkew = TimeSpan.FromMinutes(2),
+            };
+
+            try
+            {
+                var principal = new JwtSecurityTokenHandler().ValidateToken(jwtToken, tokenValidationParameters, out var securityToken);
+                if (securityToken is JwtSecurityToken jwtSecurityToken &&
+                    jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.OrdinalIgnoreCase))
+                {
+                    return principal;
+                }
+            }
+            catch
+            {
+                jwtToken = null;
+            }
+
+            return null;
+        }
+
         public ActivationTokenData CreateActivationToken()
         {
             return new ActivationTokenData() { Pin = GenerateActivationCode(6) };
@@ -72,13 +114,14 @@ namespace NC.Services
             };
         }
 
-        public async Task<RefreshTokenResponse> RefreshJwtToken(RefreshTokenRequest request, Guid userID, string? jwtToken, CancellationToken cancellationToken)
+        public async Task<RefreshTokenResponse> RefreshJwtToken(RefreshTokenRequest request, string? jwtToken, CancellationToken cancellationToken)
         {
             var response = new RefreshTokenResponse();
             response.SetError(StatusCodes.Status400BadRequest, "ERROR.TOKENSERVICE.REFRESHJWTTOKEN.INVADLIDREQUEST");
-            if (jwtToken != null)
+            var principal = GetPrincipalFromExpiredToken(jwtToken, out var validatedJwtToken);
+            var claim = principal?.Claims.FirstOrDefault(entity => entity.Type == ClaimTypes.NameIdentifier);
+            if (claim != null && Guid.TryParse(claim.Value, out var userID) && validatedJwtToken != null)
             {
-                jwtToken = jwtToken.Split("Bearer").Last().Trim();
                 var token = await context.Tokens.FirstOrDefaultAsync(entity => entity.ID == request.RefreshToken, cancellationToken);
                 if (token != null &&  token.Status == TokenStatusEnum.Active.ToByte())
                 {
@@ -87,7 +130,7 @@ namespace NC.Services
                         token.Status = TokenStatusEnum.Expired.ToByte();
                         await context.SaveChangesAsync(cancellationToken);
                     }
-                    else if(token.UserID == userID && token.Data == jwtToken)
+                    else if(token.UserID == userID && token.Data == validatedJwtToken)
                     {
                         var user = await context.Users.FirstOrDefaultAsync(entity => entity.ID == userID, cancellationToken);
                         if (user != null)
