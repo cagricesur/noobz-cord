@@ -26,7 +26,7 @@ namespace NC.Services
             }
             else
             {
-                var validFor = TimeSpan.FromMinutes(1);
+                var validFor = TimeSpan.FromDays(1);
                 var now = DateTime.UtcNow;
                 var nbf = new DateTimeOffset(now);
                 var exp = new DateTimeOffset(now.Add(validFor));
