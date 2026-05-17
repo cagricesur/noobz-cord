@@ -415,3 +415,4 @@ FodyWeavers.xsd
 # End of https://mrkandreev.name/snippets/gitignore-generator/#react,VisualStudio,VisualStudioCode
 .tanstack/
 dist/
+/Web/NC.Web/NC.Web.Server/appsettings.Development.json
