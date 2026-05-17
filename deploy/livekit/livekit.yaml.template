@@ -11,8 +11,6 @@ rtc:
 keys:
   YOUR_API_KEY: YOUR_API_SECRET
 
+# TURN disabled when nginx uses port 443 for TLS. Enable with external coturn if needed.
 turn:
-  enabled: true
-  domain: livekit.noobzcord.com
-  tls_port: 443
-  external_tls: true
+  enabled: false

@@ -1,3 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+mkdir -p /var/www/certbot
+
+cat >/etc/nginx/sites-available/noobzcord.com <<'NGINX'
 map $http_upgrade $connection_upgrade {
     default upgrade;
     ''      close;
@@ -23,3 +28,16 @@ server {
         proxy_read_timeout 86400;
     }
 }
+NGINX
+
+nginx -t && systemctl reload nginx
+
+certbot certonly --webroot -w /var/www/certbot \
+  -d noobzcord.com -d www.noobzcord.com \
+  --non-interactive --agree-tos --register-unsafely-without-email
+
+# Enable HTTPS in nginx
+certbot --nginx -d noobzcord.com -d www.noobzcord.com \
+  --non-interactive --agree-tos --register-unsafely-without-email --redirect
+
+echo SSL_OK
