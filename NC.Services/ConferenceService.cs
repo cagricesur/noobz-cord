@@ -51,7 +51,13 @@ namespace NC.Services
                         { "video", videoGrant },
                     };
 
-                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(liveKitSettings.Value.ApiSecret));
+                var secret = liveKitSettings.Value.ApiSecret;
+                while(secret.Length < 32)
+                {
+                    secret += "1";
+                }
+
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
                 var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
                 var header = new JwtHeader(creds);
                 var token = new JwtSecurityToken(header, payload);

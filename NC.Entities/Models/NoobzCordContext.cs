@@ -6,55 +6,25 @@ using Microsoft.EntityFrameworkCore;
 
 namespace NC.Entities.Models;
 
-public partial class NoobzCordContext : DbContext
+public  class NoobzCordContext : DbContext
 {
     public NoobzCordContext(DbContextOptions<NoobzCordContext> options)
-        : base(options)
+      : base(options)
     {
     }
 
-    public virtual DbSet<Token> Tokens { get; set; }
+    public DbSet<Token> Tokens { get; set; }
 
-    public virtual DbSet<Translation> Translations { get; set; }
+    public DbSet<Translation> Translations { get; set; }
 
-    public virtual DbSet<User> Users { get; set; }
+    public DbSet<User> Users { get; set; }
 
-    public virtual DbSet<UserPassword> UserPasswords { get; set; }
+    public DbSet<UserPassword> UserPasswords { get; set; }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<Token>(entity =>
-        {
-            entity.Property(e => e.ID).ValueGeneratedNever();
-
-            entity.HasOne(d => d.User).WithMany(p => p.Tokens)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Token_User");
-        });
-
-        modelBuilder.Entity<Translation>(entity =>
-        {
-            entity.Property(e => e.ID).ValueGeneratedNever();
-        });
-
-        modelBuilder.Entity<User>(entity =>
-        {
-            entity.Property(e => e.ID).ValueGeneratedNever();
-        });
-
-        modelBuilder.Entity<UserPassword>(entity =>
-        {
-            entity.HasKey(e => e.UserID).HasName("PK_UserPassword_1");
-
-            entity.Property(e => e.UserID).ValueGeneratedNever();
-
-            entity.HasOne(d => d.User).WithOne(p => p.UserPassword)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_UserPassword_User");
-        });
-
-        OnModelCreatingPartial(modelBuilder);
-    }
-
-    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+    //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    //{
+    //    base.OnConfiguring(optionsBuilder);
+    //    optionsBuilder.UseSnakeCaseNamingConvention();
+    //    optionsBuilder.UseNpgsql("Host=localhost;Database=NoobzCord;Username=postgres;Password=123456789");
+    //}
 }

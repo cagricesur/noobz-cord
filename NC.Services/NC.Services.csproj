@@ -7,6 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.18.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.18.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\NC.Entities\NC.Entities.csproj" />
     <ProjectReference Include="..\NC.Models\NC.Models.csproj" />
     <ProjectReference Include="..\NC.Utils\NC.Utils.csproj" />

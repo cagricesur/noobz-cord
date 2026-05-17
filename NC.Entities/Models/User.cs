@@ -22,7 +22,6 @@ public partial class User
     [StringLength(50)]
     public string Contact { get; set; } = null!;
 
-    [Column(TypeName = "datetime")]
     public DateTime RegistrationDate { get; set; }
 
     public byte Status { get; set; }

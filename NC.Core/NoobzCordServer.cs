@@ -49,7 +49,8 @@ namespace NC.Core
         {
             builder.Services.AddDbContext<NoobzCordContext>(options =>
             {
-                options.UseSqlServer(builder.Configuration.GetConnectionString("NoobzCord"));
+                options.UseSnakeCaseNamingConvention();
+                options.UseNpgsql(builder.Configuration.GetConnectionString("NoobzCord"));
             });
         }
     }

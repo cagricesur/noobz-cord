@@ -18,10 +18,8 @@ public partial class Token
 
     public string? Data { get; set; }
 
-    [Column(TypeName = "datetime")]
     public DateTime Expires { get; set; }
 
-    [Column(TypeName = "datetime")]
     public DateTime? UsedOn { get; set; }
 
     public byte Status { get; set; }
