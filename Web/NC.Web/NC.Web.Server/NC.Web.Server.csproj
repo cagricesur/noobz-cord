@@ -15,6 +15,15 @@
     </PackageReference>
   </ItemGroup>
 
+  <Target Name="PublishSpa" BeforeTargets="ComputeFilesToPublish">
+    <Exec WorkingDirectory="$(SpaRoot)" Command="npm ci" Condition="!Exists('$(SpaRoot)/node_modules')" />
+    <Exec WorkingDirectory="$(SpaRoot)" Command="npm run build" />
+    <ItemGroup>
+      <SpaDistFiles Include="$(SpaRoot)\dist\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(SpaDistFiles)" DestinationFiles="@(SpaDistFiles->'wwwroot\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
+
   <ItemGroup>
     <ProjectReference Include="..\..\..\NC.Core\NC.Core.csproj" />
     <ProjectReference Include="..\..\..\NC.Models\NC.Models.csproj" />

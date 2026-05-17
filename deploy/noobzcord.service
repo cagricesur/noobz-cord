@@ -1,0 +1,15 @@
+[Unit]
+Description=NoobzCord Web Server
+After=network.target docker.service
+
+[Service]
+WorkingDirectory=/var/noobz-cord/app
+ExecStart=/usr/bin/dotnet /var/noobz-cord/app/NC.Web.Server.dll
+EnvironmentFile=/etc/noobz-cord/env
+Restart=always
+RestartSec=5
+User=www-data
+Group=www-data
+
+[Install]
+WantedBy=multi-user.target

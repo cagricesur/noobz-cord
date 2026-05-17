@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -77,7 +78,10 @@ namespace NC.Core
             builder.ConfigureServices();
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddSignalR();
-
+            builder.Services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+            });
 
             builder.Services
                 .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -113,6 +117,8 @@ namespace NC.Core
                 });
 
             var app = builder.Build();
+
+            app.UseForwardedHeaders();
 
             app.UseDefaultFiles();
             app.MapStaticAssets();
