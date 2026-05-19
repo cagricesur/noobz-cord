@@ -12,19 +12,19 @@ namespace NC.Core
 
         public Task<ConferenceJoinStatus> BeginConferenceJoin()
         {
-            var userId = GetCurrentUserId();
+            //var userId = GetCurrentUserId();
 
-            if (ActiveConferenceConnections.TryGetValue(userId, out var activeConnection) &&
-                activeConnection.ConnectionId != Context.ConnectionId)
-            {
-                return Task.FromResult(new ConferenceJoinStatus
-                {
-                    HasDuplicate = true,
-                    Message = "Only one instance of the same user can be in the conference room."
-                });
-            }
+            //if (ActiveConferenceConnections.TryGetValue(userId, out var activeConnection) &&
+            //    activeConnection.ConnectionId != Context.ConnectionId)
+            //{
+            //    return Task.FromResult(new ConferenceJoinStatus
+            //    {
+            //        HasDuplicate = true,
+            //        Message = "Only one instance of the same user can be in the conference room."
+            //    });
+            //}
 
-            ActiveConferenceConnections[userId] = new ConferenceConnection(Context.ConnectionId, DateTimeOffset.UtcNow);
+            //ActiveConferenceConnections[userId] = new ConferenceConnection(Context.ConnectionId, DateTimeOffset.UtcNow);
 
             return Task.FromResult(new ConferenceJoinStatus
             {
@@ -35,32 +35,32 @@ namespace NC.Core
 
         public async Task<ConferenceJoinDecision> ResolveDuplicateConferenceInstance(bool replaceExisting)
         {
-            var userId = GetCurrentUserId();
+            //var userId = GetCurrentUserId();
 
-            if (!replaceExisting)
-            {
-                return new ConferenceJoinDecision
-                {
-                    Accepted = false,
-                    Message = "Conference join cancelled."
-                };
-            }
+            //if (!replaceExisting)
+            //{
+            //    return new ConferenceJoinDecision
+            //    {
+            //        Accepted = false,
+            //        Message = "Conference join cancelled."
+            //    };
+            //}
 
-            string? replacedConnectionId = null;
-            var newConnection = new ConferenceConnection(Context.ConnectionId, DateTimeOffset.UtcNow);
+            //string? replacedConnectionId = null;
+            //var newConnection = new ConferenceConnection(Context.ConnectionId, DateTimeOffset.UtcNow);
 
-            ActiveConferenceConnections.AddOrUpdate(
-                userId,
-                newConnection,
-                (_, existingConnection) =>
-                {
-                    if (existingConnection.ConnectionId != Context.ConnectionId)
-                    {
-                        replacedConnectionId = existingConnection.ConnectionId;
-                    }
+            //ActiveConferenceConnections.AddOrUpdate(
+            //    userId,
+            //    newConnection,
+            //    (_, existingConnection) =>
+            //    {
+            //        if (existingConnection.ConnectionId != Context.ConnectionId)
+            //        {
+            //            replacedConnectionId = existingConnection.ConnectionId;
+            //        }
 
-                    return newConnection;
-                });
+            //        return newConnection;
+            //    });
 
             //if (replacedConnectionId != null)
             //{
@@ -78,13 +78,13 @@ namespace NC.Core
 
         public Task EndConferenceSession()
         {
-            RemoveConnectionIfCurrent(Context.ConnectionId);
+            //RemoveConnectionIfCurrent(Context.ConnectionId);
             return Task.CompletedTask;
         }
 
         public override Task OnDisconnectedAsync(Exception? exception)
         {
-            RemoveConnectionIfCurrent(Context.ConnectionId);
+            //RemoveConnectionIfCurrent(Context.ConnectionId);
             return base.OnDisconnectedAsync(exception);
         }
 
