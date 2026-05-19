@@ -62,12 +62,12 @@ namespace NC.Core
                     return newConnection;
                 });
 
-            if (replacedConnectionId != null)
-            {
-                await Clients.Client(replacedConnectionId).SendAsync(
-                    "ConferenceInstanceKicked",
-                    "You were signed off because this user joined the conference from another instance.");
-            }
+            //if (replacedConnectionId != null)
+            //{
+            //    await Clients.Client(replacedConnectionId).SendAsync(
+            //        "ConferenceInstanceKicked",
+            //        "You were signed off because this user joined the conference from another instance.");
+            //}
 
             return new ConferenceJoinDecision
             {
