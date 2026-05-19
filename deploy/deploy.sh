@@ -14,9 +14,9 @@ rm -rf ../NC.Web.Server/wwwroot/*
 cp -r dist/* ../NC.Web.Server/wwwroot/
 
 cd "$REPO_DIR"
-dotnet ef database update \
-  --project NC.Entities \
-  --startup-project Web/NC.Web/NC.Web.Server
+#!dotnet ef database update \
+#!  --project NC.Entities \
+#!  --startup-project Web/NC.Web/NC.Web.Server
 
 dotnet publish Web/NC.Web/NC.Web.Server/NC.Web.Server.csproj \
   -c Release -o "$PUBLISH_DIR"
